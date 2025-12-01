@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrador del Marcador</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrador del Marcador</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
-<script src="firebase.js"></script>
+  <!-- Firebase compat (para usar firebase.initializeApp y firebase.database) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+  <script src="firebase.js"></script>
 
-    <style>
-        body { background:#111; color:white; font-family:Arial; padding:20px; }
-        button, select, input { padding:10px; margin:5px; font-size:18px; }
-        .box { border:1px solid #444; padding:15px; margin:10px 0; border-radius:10px; }
-    </style>
+  <style>
+    body { background:#111; color:white; font-family:Arial; padding:20px; }
+    button, select, input { padding:10px; margin:5px; font-size:18px; }
+    .box { border:1px solid #444; padding:15px; margin:10px 0; border-radius:10px; }
+  </style>
 </head>
 
 <body>
@@ -21,88 +22,148 @@
 <h1>Panel Administrador (OVT)</h1>
 
 <div class="box">
-    <h2>Agregar Nuevo Equipo</h2>
-    Nombre <input id="new_team_name"><br>
-    Color <input id="new_team_color" type="color" value="#ff0000"><br>
-    <button onclick="addTeam()">Guardar Equipo</button>
+  <h2>Agregar Nuevo Equipo</h2>
+  Nombre <input id="new_team_name"><br>
+  Color <input id="new_team_color" type="color" value="#ff0000"><br>
+  <button onclick="addTeam()">Guardar Equipo</button>
 </div>
 
 <div class="box">
-    <h2>Configurar Partido</h2>
+  <h2>Configurar Partido</h2>
 
-    Equipo Local: <select id="team_home_select"></select><br>
-    Equipo Visitante: <select id="team_away_select"></select><br>
+  Equipo Local: <select id="team_home_select"></select><br>
+  Equipo Visitante: <select id="team_away_select"></select><br>
 
-    Fecha: <input id="date"><br>
-    Lugar: <input id="location"><br>
+  Fecha: <input id="date"><br>
+  Lugar: <input id="location"><br>
 
-    Cuarto:
-    <select id="quarter">
-        <option>1Q</option>
-        <option>2Q</option>
-        <option>3Q</option>
-        <option>4Q</option>
-        <option>OT</option>
-    </select>
+  Cuarto:
+  <select id="quarter">
+    <option>1Q</option>
+    <option>2Q</option>
+    <option>3Q</option>
+    <option>4Q</option>
+    <option>OT</option>
+  </select>
 </div>
 
 <div class="box">
-    <h2>Posesión</h2>
-    <button onclick="setPossession('home')">Local</button>
-    <button onclick="setPossession('away')">Visitante</button>
+  <h2>Posesión</h2>
+  <button onclick="setPossession('home')">Local</button>
+  <button onclick="setPossession('away')">Visitante</button>
 </div>
 
 <div class="box">
-    <h2>Anotaciones</h2>
-    <button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
-    <button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
-    <button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
-    <button onclick="addPoints('home',2,'Safety')">Safety Local +2</button><br>
+  <h2>Anotaciones</h2>
+  <button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
+  <button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
+  <button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
+  <button onclick="addPoints('home',2,'Safety')">Safety Local +2</button><br>
 
-    <button onclick="addPoints('away',6,'Touchdown')">TD Visitante +6</button>
-    <button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
-    <button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
-    <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
+  <button onclick="addPoints('away',6,'Touchdown')">TD Visitante +6</button>
+  <button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
+  <button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
+  <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
 </div>
 
 <div class="box">
-    <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
+  <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
 </div>
 
 <script>
-const refTeams = db.ref("teams");
-const refGame = db.ref("game");
+  // db ya está declarado en firebase.js → aquí solo usamos esa instancia
+  const refTeams = db.ref("teams");
+  const refGame  = db.ref("game");
 
-function addTeam() {
-    const name = new_team_name.value;
-    const color = new_team_color.value;
-    if (!name) return alert("Escribe un nombre primero");
-    refTeams.child(name).set({ color });
-    alert("Equipo guardado");
-}
+  // Agregar nuevo equipo
+  function addTeam() {
+    const name  = document.getElementById("new_team_name").value.trim();
+    const color = document.getElementById("new_team_color").value;
 
-refTeams.on("value", snap => {
-    const teams = snap.val();
-    team_home_select.innerHTML = "";
-    team_away_select.innerHTML = "";
-    for (const t in teams) {
-        team_home_select.innerHTML += `<option>${t}</option>`;
-        team_away_select.innerHTML += `<option>${t}</option>`;
+    if (!name) {
+      alert("Escribe un nombre primero");
+      return;
     }
-});
 
-setInterval(() => {
+    refTeams.child(name).set({ color: color })
+      .then(() => {
+        alert("Equipo guardado");
+        document.getElementById("new_team_name").value = "";
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error al guardar el equipo");
+      });
+  }
+
+  // Llenar selects de equipos cuando cambie la lista en Firebase
+  refTeams.on("value", snap => {
+    const teams = snap.val() || {};
+
+    const homeSel = document.getElementById("team_home_select");
+    const awaySel = document.getElementById("team_away_select");
+
+    homeSel.innerHTML = "";
+    awaySel.innerHTML = "";
+
+    for (const t in teams) {
+      homeSel.innerHTML += `<option>${t}</option>`;
+      awaySel.innerHTML += `<option>${t}</option>`;
+    }
+  });
+
+  // Guardar cada 1.5s la info básica del partido
+  setInterval(() => {
     refGame.update({
-        team_home: team_home_select.value,
-        team_away: team_away_select.value,
-        date: date.value,
-        location: location.value,
-        quarter: quarter.value
+      team_home: document.getElementById("team_home_select").value || "",
+      team_away: document.getElementById("team_away_select").value || "",
+      date:      document.getElementById("date").value || "",
+      location:  document.getElementById("location").value || "",
+      quarter:   document.getElementById("quarter").value || "1Q"
     });
-}, 1500);
+  }, 1500);
 
-function setPossession(team) {
+  // Cambiar posesión
+  function setPossession(team) {
     refGame.update({ possession: team });
-}
+  }
 
-/* NARRACIÓN Y CRÓNICA (versión completa) */
+  // Añadir puntos + línea al timeline
+  function addPoints(side, points, type) {
+    refGame.once("value").then(snap => {
+      const data = snap.val() || {};
+      const currentHome = data.score_home || 0;
+      const currentAway = data.score_away || 0;
+      const quarter     = data.quarter || "1Q";
+      const timeline    = data.timeline || [];
+
+      const teamName = side === "home" ? data.team_home : data.team_away;
+
+      // Texto simple por ahora (luego lo hacemos más épico)
+      const desc = `${quarter} • ${type} de ${teamName} (${points} pts)`;
+
+      timeline.push(desc);
+
+      const update = {
+        timeline: timeline
+      };
+
+      if (side === "home") {
+        update.score_home = currentHome + points;
+      } else {
+        update.score_away = currentAway + points;
+      }
+
+      refGame.update(update);
+    });
+  }
+
+  // Marcar partido como finalizado (luego podemos usarlo para mostrar mensaje especial)
+  function finishGame() {
+    refGame.update({ finished: true });
+    alert("Partido marcado como FINALIZADO");
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcador en Vivo</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js"></script>
+    <script src="firebase.js"></script>
+</head>
+
+<body>
+
+<div class="scoreboard-container">
+
+    <div class="game-header" id="game_info"></div>
+
+    <div class="score-bar">
+
+        <div class="team-box" id="team_home_box">
+            <div class="team-name" id="team_home"></div>
+            <div class="possession" id="pos_home"></div>
+        </div>
+
+        <div class="score-center">
+            <span id="score_home"></span> - <span id="score_away"></span>
+        </div>
+
+        <div class="team-box" id="team_away_box">
+            <div class="team-name" id="team_away"></div>
+            <div class="possession" id="pos_away"></div>
+        </div>
+
+    </div>
+
+    <div class="quarter-box" id="quarter"></div>
+
+    <div class="timeline-box" id="timeline"></div>
+
+</div>
+
+<script>
+const db = firebase.database();
+const refTeams = db.ref("teams");
+const refGame = db.ref("game");
+
+let teamColors = {};
+
+refTeams.on("value", snap => {
+    teamColors = snap.val() || {};
+});
+
+refGame.on("value", snap => {
+    const data = snap.val();
+    if (!data) return;
+
+    document.getElementById("game_info").innerText =
+        `${data.location} • ${data.date}`;
+
+    document.getElementById("team_home").innerText = data.team_home;
+    document.getElementById("team_away").innerText = data.team_away;
+
+    document.getElementById("team_home_box").style.background =
+        teamColors[data.team_home]?.color || "#333";
+
+    document.getElementById("team_away_box").style.background =
+        teamColors[data.team_away]?.color || "#333";
+
+    document.getElementById("score_home").innerText = data.score_home;
+    document.getElementById("score_away").innerText = data.score_away;
+
+    document.getElementById("quarter").innerText = `Cuarto: ${data.quarter}`;
+
+    document.getElementById("pos_home").innerText =
+        data.possession === "home" ? "⬅ Posesión" : "";
+
+    document.getElementById("pos_away").innerText =
+        data.possession === "away" ? "Posesión ➡" : "";
+
+    let html = "";
+    (data.timeline || []).forEach(e => {
+        html += `<div class="timeline-item">${e}</div>`;
+    });
+    document.getElementById("timeline").innerHTML = html;
+});
+</script>
+
+</body>
+</html>

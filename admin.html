@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrador del Marcador</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js"></script>
+    <script src="firebase.js"></script>
+
+    <style>
+        body { background:#111; color:white; font-family:Arial; padding:20px; }
+        button, select, input { padding:10px; margin:5px; font-size:18px; }
+        .box { border:1px solid #444; padding:15px; margin:10px 0; border-radius:10px; }
+    </style>
+</head>
+
+<body>
+
+<h1>Panel Administrador (NFL)</h1>
+
+<div class="box">
+    <h2>Agregar Nuevo Equipo</h2>
+    Nombre <input id="new_team_name"><br>
+    Color <input id="new_team_color" type="color" value="#ff0000"><br>
+    <button onclick="addTeam()">Guardar Equipo</button>
+</div>
+
+<div class="box">
+    <h2>Configurar Partido</h2>
+
+    Equipo Local: <select id="team_home_select"></select><br>
+    Equipo Visitante: <select id="team_away_select"></select><br>
+
+    Fecha: <input id="date"><br>
+    Lugar: <input id="location"><br>
+
+    Cuarto:
+    <select id="quarter">
+        <option>1Q</option>
+        <option>2Q</option>
+        <option>3Q</option>
+        <option>4Q</option>
+        <option>OT</option>
+    </select>
+</div>
+
+<div class="box">
+    <h2>Posesión</h2>
+    <button onclick="setPossession('home')">Local</button>
+    <button onclick="setPossession('away')">Visitante</button>
+</div>
+
+<div class="box">
+    <h2>Anotaciones</h2>
+    <button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
+    <button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
+    <button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
+    <button onclick="addPoints('home',2,'Safety')">Safety Local +2</button><br>
+
+    <button onclick="addPoints('away',6,'Touchdown')">TD Visitante +6</button>
+    <button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
+    <button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
+    <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
+</div>
+
+<div class="box">
+    <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
+</div>
+
+<script>
+const db = firebase.database();
+const refTeams = db.ref("teams");
+const refGame = db.ref("game");
+
+function addTeam() {
+    const name = new_team_name.value;
+    const color = new_team_color.value;
+    if (!name) return alert("Escribe un nombre primero");
+    refTeams.child(name).set({ color });
+    alert("Equipo guardado");
+}
+
+refTeams.on("value", snap => {
+    const teams = snap.val();
+    team_home_select.innerHTML = "";
+    team_away_select.innerHTML = "";
+    for (const t in teams) {
+        team_home_select.innerHTML += `<option>${t}</option>`;
+        team_away_select.innerHTML += `<option>${t}</option>`;
+    }
+});
+
+setInterval(() => {
+    refGame.update({
+        team_home: team_home_select.value,
+        team_away: team_away_select.value,
+        date: date.value,
+        location: location.value,
+        quarter: quarter.value
+    });
+}, 1500);
+
+function setPossession(team) {
+    refGame.update({ possession: team });
+}
+
+/* NARRACIÓN Y CRÓNICA (versión completa) */

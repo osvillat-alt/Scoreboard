@@ -11,9 +11,10 @@
   <script src="firebase.js"></script>
 
   <style>
-    body { background:#111; color:white; font-family:Arial; padding:20px; }
-    button, select, input { padding:10px; margin:5px; font-size:18px; }
+    body { background:#111; color:white; font-family:Arial, sans-serif; padding:20px; }
+    button, select, input { padding:10px; margin:5px; font-size:16px; }
     .box { border:1px solid #444; padding:15px; margin:10px 0; border-radius:10px; }
+    h1 { margin-top:0; }
   </style>
 </head>
 
@@ -41,13 +42,13 @@
   <select id="quarter">
     <option>1Q</option>
     <option>2Q</option>
+    <option>MT</option>
     <option>3Q</option>
     <option>4Q</option>
     <option>OT</option>
-    <option>MT</option> <!-- Medio tiempo -->
   </select>
   <p style="font-size:14px;opacity:0.8;margin-top:5px;">
-    MT = Medio tiempo
+    Secuencia permitida: 1Q → 2Q → MT → 3Q → 4Q → OT
   </p>
 </div>
 
@@ -73,6 +74,13 @@
 </div>
 
 <div class="box">
+  <h2>Encuesta: ¿Quién ganará?</h2>
+  <button onclick="enablePoll(true)">Activar encuesta</button>
+  <button onclick="enablePoll(false)">Ocultar encuesta</button>
+  <div id="poll_summary" style="margin-top:10px; font-size:14px;"></div>
+</div>
+
+<div class="box">
   <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
   <button style="background:#555;color:white;margin-left:10px;" onclick="resetGame()">Reset sin guardar</button>
 </div>
@@ -81,6 +89,8 @@
   // Referencias a Firebase (db viene de firebase.js)
   const refTeams = db.ref("teams");
   const refGame  = db.ref("game");
+
+  const QUARTER_ORDER = ["1Q", "2Q", "MT", "3Q", "4Q", "OT"];
 
   // ===== FRASES EPICAS =====
   const FRASES_TD = [
@@ -254,75 +264,68 @@
       awaySel.innerHTML += `<option>${t}</option>`;
     }
   });
-const QUARTER_ORDER = ["1Q", "2Q", "MT", "3Q", "4Q", "OT"];
 
   let lastQuarter = null;
 
-setInterval(() => {
-  const qSel   = document.getElementById("quarter").value || "1Q";
-  const home   = document.getElementById("team_home_select").value || "";
-  const away   = document.getElementById("team_away_select").value || "";
-  const date   = document.getElementById("date").value || "";
-  const place  = document.getElementById("location").value || "";
+  setInterval(() => {
+    const qSel   = document.getElementById("quarter").value || "1Q";
+    const home   = document.getElementById("team_home_select").value || "";
+    const away   = document.getElementById("team_away_select").value || "";
+    const date   = document.getElementById("date").value || "";
+    const place  = document.getElementById("location").value || "";
 
-  // detectar cambio de cuarto y escribir al timeline
-  if (lastQuarter === null) {
-    // primera vez que corre, tomamos el valor inicial
-    lastQuarter = qSel;
-  } else if (qSel !== lastQuarter) {
-    // VALIDAR SECUENCIA 1Q → 2Q → MT → 3Q → 4Q → OT
-    const idxOld = QUARTER_ORDER.indexOf(lastQuarter);
-    const idxNew = QUARTER_ORDER.indexOf(qSel);
+    // detectar cambio de cuarto y escribir al timeline
+    if (lastQuarter === null) {
+      lastQuarter = qSel;
+    } else if (qSel !== lastQuarter) {
+      const idxOld = QUARTER_ORDER.indexOf(lastQuarter);
+      const idxNew = QUARTER_ORDER.indexOf(qSel);
 
-    // solo se permite avanzar un paso exacto
-    if (idxNew !== idxOld + 1) {
-      // regresamos el select a su valor anterior
-      document.getElementById("quarter").value = lastQuarter;
-      alert("Secuencia inválida de cuartos. El orden permitido es 1Q → 2Q → MT → 3Q → 4Q → OT.");
+      if (idxNew !== idxOld + 1) {
+        document.getElementById("quarter").value = lastQuarter;
+        alert("Secuencia inválida de cuartos. El orden permitido es 1Q → 2Q → MT → 3Q → 4Q → OT.");
+        return;
+      }
+
+      refGame.once("value").then(snap => {
+        const data = snap.val() || {};
+        const tl = data.timeline || [];
+
+        let msg = "";
+        if (qSel === "MT") {
+          msg = `Termina el ${lastQuarter}. Entramos a medio tiempo.`;
+        } else if (lastQuarter === "MT") {
+          msg = `Termina el medio tiempo, comienza el ${qSel}.`;
+        } else {
+          msg = `Se termina el ${lastQuarter}. Comienza el ${qSel}.`;
+        }
+
+        const nuevoTL = [...tl, msg];
+
+        refGame.update({
+          team_home: home,
+          team_away: away,
+          date:      date,
+          location:  place,
+          quarter:   qSel,
+          timeline:  nuevoTL
+        });
+
+        lastQuarter = qSel;
+      });
+
       return;
     }
 
-    // si la secuencia es válida, actualizamos timeline y game
-    refGame.once("value").then(snap => {
-      const data = snap.val() || {};
-      const tl = data.timeline || [];
-
-      let msg = "";
-      if (qSel === "MT") {
-        msg = `Termina el ${lastQuarter}. Entramos a medio tiempo.`;
-      } else if (lastQuarter === "MT") {
-        msg = `Termina el medio tiempo, comienza el ${qSel}.`;
-      } else {
-        msg = `Se termina el ${lastQuarter}. Comienza el ${qSel}.`;
-      }
-
-      const nuevoTL = [...tl, msg];
-
-      refGame.update({
-        team_home: home,
-        team_away: away,
-        date:      date,
-        location:  place,
-        quarter:   qSel,
-        timeline:  nuevoTL
-      });
-
-      lastQuarter = qSel;
+    // actualización normal sin cambio de cuarto
+    refGame.update({
+      team_home: home,
+      team_away: away,
+      date:      date,
+      location:  place,
+      quarter:   qSel
     });
-
-    return; // ya actualizamos, no seguimos abajo
-  }
-
-  // actualización normal sin cambio de cuarto
-  refGame.update({
-    team_home: home,
-    team_away: away,
-    date:      date,
-    location:  place,
-    quarter:   qSel
-  });
-}, 1500);
-
+  }, 1500);
 
   function setPossession(team) {
     refGame.update({ possession: team });
@@ -365,6 +368,38 @@ setInterval(() => {
     });
   }
 
+  function enablePoll(active) {
+    refGame.update({ pollEnabled: !!active });
+  }
+
+  function resetGame() {
+    if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
+
+    refGame.set({
+      team_home: "",
+      team_away: "",
+      date: "",
+      location: "",
+      quarter: "1Q",
+      score_home: 0,
+      score_away: 0,
+      possession: null,
+      pollEnabled: false,
+      pollVotes: null,
+      timeline: []
+    }).then(() => {
+      document.getElementById("team_home_select").value = "";
+      document.getElementById("team_away_select").value = "";
+      document.getElementById("date").value = "";
+      document.getElementById("location").value = "";
+      document.getElementById("quarter").value = "1Q";
+      alert("Marcador reseteado.");
+    }).catch(err => {
+      console.error(err);
+      alert("No se pudo resetear el marcador.");
+    });
+  }
+
   function finishGame() {
     refGame.once("value").then(snap => {
       const data = snap.val() || {};
@@ -387,64 +422,68 @@ setInterval(() => {
         finishedAt: timestamp
       };
 
-      // 1) Guardar el partido en historial
-      historyRef.set(historyData)
-        .then(() => {
-          // 2) Resetear el nodo "game" para un nuevo partido
-          return refGame.set({
-            team_home: "",
-            team_away: "",
-            date: "",
-            location: "",
-            quarter: "1Q",
-            score_home: 0,
-            score_away: 0,
-            possession: null,
-            timeline: []
-          });
-        })
-        .then(() => {
-          // 3) Limpiar campos del panel admin
-          document.getElementById("team_home_select").value = "";
-          document.getElementById("team_away_select").value = "";
-          document.getElementById("date").value = "";
-          document.getElementById("location").value = "";
-          document.getElementById("quarter").value = "1Q";
-
-          alert("Partido finalizado, guardado en historial y marcador reiniciado.");
-        })
-        .catch(err => {
-          console.error(err);
-          alert("Ocurrió un error al finalizar el partido.");
+      historyRef.set(historyData).then(() => {
+        return refGame.set({
+          team_home: "",
+          team_away: "",
+          date: "",
+          location: "",
+          quarter: "1Q",
+          score_home: 0,
+          score_away: 0,
+          possession: null,
+          pollEnabled: false,
+          pollVotes: null,
+          timeline: []
         });
+      }).then(() => {
+        document.getElementById("team_home_select").value = "";
+        document.getElementById("team_away_select").value = "";
+        document.getElementById("date").value = "";
+        document.getElementById("location").value = "";
+        document.getElementById("quarter").value = "1Q";
+        alert("Partido finalizado, guardado en historial y marcador reiniciado.");
+      }).catch(err => {
+        console.error(err);
+        alert("Ocurrió un error al finalizar el partido.");
+      });
     });
   }
 
-  function resetGame() {
-    if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
+  // Resumen de encuesta en el admin
+  refGame.on("value", snap => {
+    const data = snap.val() || {};
+    const votes = data.pollVotes || {};
+    const summaryEl = document.getElementById("poll_summary");
+    if (!summaryEl) return;
 
-    refGame.set({
-      team_home: "",
-      team_away: "",
-      date: "",
-      location: "",
-      quarter: "1Q",
-      score_home: 0,
-      score_away: 0,
-      possession: null,
-      timeline: []
-    }).then(() => {
-      document.getElementById("team_home_select").value = "";
-      document.getElementById("team_away_select").value = "";
-      document.getElementById("date").value = "";
-      document.getElementById("location").value = "";
-      document.getElementById("quarter").value = "1Q";
-      alert("Marcador reseteado.");
-    }).catch(err => {
-      console.error(err);
-      alert("No se pudo resetear el marcador.");
-    });
-  }
+    let homeCount = 0;
+    let awayCount = 0;
+    let listHtml = "";
+
+    for (const deviceId in votes) {
+      const v = votes[deviceId];
+      if (v.team === "home") homeCount++;
+      else if (v.team === "away") awayCount++;
+
+      const name = v.name || "(sin nombre)";
+      const teamName = v.team === "home"
+        ? (data.team_home || "Local")
+        : (data.team_away || "Visitante");
+
+      listHtml += `<div>${name} → ${teamName}</div>`;
+    }
+
+    const total = homeCount + awayCount;
+    summaryEl.innerHTML = `
+      <p>Encuesta: <strong>${data.pollEnabled ? "ACTIVA" : "INACTIVA"}</strong></p>
+      <p>${data.team_home || "Local"}: ${homeCount} voto(s)</p>
+      <p>${data.team_away || "Visitante"}: ${awayCount} voto(s)</p>
+      <p>Total: ${total} voto(s)</p>
+      <hr>
+      ${listHtml || "<em>Aún no hay votos</em>"}
+    `;
+  });
 </script>
 
 </body>

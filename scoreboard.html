@@ -1,44 +1,62 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marcador en Vivo</title>
-    <link rel="stylesheet" href="style.css">
-   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
-<script src="firebase.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marcador en Vivo</title>
 
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+  <script src="firebase.js"></script>
 </head>
-
 <body>
 
 <div class="scoreboard-container">
+  <div class="game-header" id="game_info">
+    <!-- Lugar • Fecha -->
+  </div>
 
-    <div class="game-header" id="game_info"></div>
-
-    <div class="score-bar">
-
-        <div class="team-box" id="team_home_box">
-            <div class="team-name" id="team_home"></div>
-            <div class="possession" id="pos_home"></div>
-        </div>
-
-        <div class="score-center">
-            <span id="score_home"></span> - <span id="score_away"></span>
-        </div>
-
-        <div class="team-box" id="team_away_box">
-            <div class="team-name" id="team_away"></div>
-            <div class="possession" id="pos_away"></div>
-        </div>
-
+  <div class="score-bar">
+    <div class="team-box" id="team_home_box">
+      <div class="team-name" id="team_home">LOCAL</div>
+      <div class="score" id="score_home">0</div>
+      <div class="possession" id="pos_home"></div>
     </div>
 
-    <div class="quarter-box" id="quarter"></div>
+    <div class="score-center">
+      <span id="score_home_small"></span>
+      <span>VS</span>
+      <span id="score_away_small"></span>
+    </div>
 
-    <div class="timeline-box" id="timeline"></div>
+    <div class="team-box" id="team_away_box">
+      <div class="team-name" id="team_away">VISITANTE</div>
+      <div class="score" id="score_away">0</div>
+      <div class="possession" id="pos_away"></div>
+    </div>
+  </div>
 
+  <div class="quarter-box" id="quarter">
+    Cuarto: 1Q
+  </div>
+
+  <!-- Encuesta -->
+  <div id="poll_section" style="display:none; margin-top:25px; text-align:center;">
+    <h2>Encuesta: ¿Quién ganará?</h2>
+    <p id="poll_question" style="margin-bottom:10px;"></p>
+    <input id="poll_name" placeholder="Tu nombre (opcional)" style="padding:8px; max-width:250px; width:80%;"><br><br>
+    <button id="vote_home_btn" style="padding:10px 15px; margin:5px;"></button>
+    <button id="vote_away_btn" style="padding:10px 15px; margin:5px;"></button>
+    <p id="poll_status" style="margin-top:10px; font-size:14px; opacity:0.85;"></p>
+  </div>
+
+  <div class="timeline-box">
+    <h2>Crónica del Partido</h2>
+    <div id="timeline"></div>
+  </div>
 </div>
 
 <script>
@@ -46,11 +64,53 @@
   const refTeams = db.ref("teams");
   const refGame  = db.ref("game");
 
+  // Identificador de dispositivo para limitar a un voto
+  const DEVICE_ID = (function () {
+    let id = localStorage.getItem("scoreboardDeviceId");
+    if (!id) {
+      id = "dev-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+      localStorage.setItem("scoreboardDeviceId", id);
+    }
+    return id;
+  })();
+
   let teamColors = {};
 
-  // Colores guardados por equipo
+  // Colores de equipos
   refTeams.on("value", snap => {
     teamColors = snap.val() || {};
+  });
+
+  function vote(teamSide) {
+    const name = document.getElementById("poll_name").value.trim();
+
+    refGame.child("pollVotes").child(DEVICE_ID).get().then(snap => {
+      if (snap.exists()) {
+        document.getElementById("poll_status").innerText = "Ya has votado en esta encuesta.";
+        return;
+      }
+
+      return refGame.child("pollVotes").child(DEVICE_ID).set({
+        team: teamSide,
+        name: name || null,
+        at: Date.now()
+      });
+    }).then(result => {
+      if (result !== undefined) {
+        document.getElementById("poll_status").innerText = "¡Gracias por votar!";
+      }
+    }).catch(err => {
+      console.error(err);
+      document.getElementById("poll_status").innerText = "Ocurrió un error al registrar tu voto.";
+    });
+  }
+
+  // Asignar handlers a botones de la encuesta
+  window.addEventListener("DOMContentLoaded", () => {
+    const homeBtn = document.getElementById("vote_home_btn");
+    const awayBtn = document.getElementById("vote_away_btn");
+    if (homeBtn) homeBtn.onclick = () => vote("home");
+    if (awayBtn) awayBtn.onclick = () => vote("away");
   });
 
   refGame.on("value", snap => {
@@ -61,22 +121,31 @@
     const info = `${data.location || ""} • ${data.date || ""}`.trim();
     document.getElementById("game_info").innerText = info || " ";
 
-    // Nombres de equipos
-    document.getElementById("team_home").innerText = data.team_home || "";
-    document.getElementById("team_away").innerText = data.team_away || "";
+    // Nombres
+    const homeName = data.team_home || "";
+    const awayName = data.team_away || "";
 
-    // Colores de caja según teams
+    document.getElementById("team_home").innerText = homeName || "LOCAL";
+    document.getElementById("team_away").innerText = awayName || "VISITANTE";
+
+    // Colores de cajas
     document.getElementById("team_home_box").style.background =
-      teamColors[data.team_home]?.color || "#2b4f63";
+      (teamColors[homeName] && teamColors[homeName].color) || "#2b4f63";
 
     document.getElementById("team_away_box").style.background =
-      teamColors[data.team_away]?.color || "#1c247a";
+      (teamColors[awayName] && teamColors[awayName].color) || "#1c247a";
 
     // Marcador
-    document.getElementById("score_home").innerText = data.score_home ?? 0;
-    document.getElementById("score_away").innerText = data.score_away ?? 0;
+    const sh = data.score_home ?? 0;
+    const sa = data.score_away ?? 0;
 
-    // Estado del partido / cuarto / medio tiempo
+    document.getElementById("score_home").innerText = sh;
+    document.getElementById("score_away").innerText = sa;
+
+    document.getElementById("score_home_small").innerText = sh;
+    document.getElementById("score_away_small").innerText = sa;
+
+    // Estado del partido / cuarto
     const qEl = document.getElementById("quarter");
     if (data.finished) {
       qEl.innerText = "Partido finalizado";
@@ -93,6 +162,29 @@
     document.getElementById("pos_away").innerText =
       data.possession === "away" ? "Posesión ➡" : "";
 
+    // Encuesta
+    const pollSection  = document.getElementById("poll_section");
+    const pollQuestion = document.getElementById("poll_question");
+    const voteHomeBtn  = document.getElementById("vote_home_btn");
+    const voteAwayBtn  = document.getElementById("vote_away_btn");
+    const pollStatus   = document.getElementById("poll_status");
+
+    if (data.pollEnabled) {
+      pollSection.style.display = "block";
+      pollQuestion.innerText = `¿Quién ganará el encuentro: ${homeName || "Local"} o ${awayName || "Visitante"}?`;
+      voteHomeBtn.innerText  = homeName || "Local";
+      voteAwayBtn.innerText  = awayName || "Visitante";
+
+      const yaVoto = data.pollVotes && data.pollVotes[DEVICE_ID];
+      if (yaVoto) {
+        pollStatus.innerText = "Ya has votado en esta encuesta.";
+      } else {
+        pollStatus.innerText = "";
+      }
+    } else {
+      pollSection.style.display = "none";
+    }
+
     // Timeline
     let html = "";
     (data.timeline || []).forEach(e => {
@@ -101,7 +193,6 @@
     document.getElementById("timeline").innerHTML = html;
   });
 </script>
-
 
 </body>
 </html>

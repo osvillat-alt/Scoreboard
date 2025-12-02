@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Administrador del Marcador</title>
 
   <!-- Firebase compat -->
@@ -14,7 +14,7 @@
     body { background:#111; color:white; font-family:Arial, sans-serif; padding:20px; }
     button, select, input { padding:10px; margin:5px; font-size:16px; }
     .box { border:1px solid #444; padding:15px; margin:10px 0; border-radius:10px; }
-    h1 { margin-top:0; }
+    h1, h2 { margin-top:0; }
   </style>
 </head>
 
@@ -22,6 +22,7 @@
 
 <h1>Panel Administrador (OVT)</h1>
 
+<!-- EQUIPOS -->
 <div class="box">
   <h2>Agregar Nuevo Equipo</h2>
   Nombre <input id="new_team_name"><br>
@@ -29,6 +30,7 @@
   <button onclick="addTeam()">Guardar Equipo</button>
 </div>
 
+<!-- CONFIG PARTIDO -->
 <div class="box">
   <h2>Configurar Partido</h2>
 
@@ -42,7 +44,7 @@
   <select id="quarter">
     <option>1Q</option>
     <option>2Q</option>
-    <option>MT</option>
+    <option>MT</option> <!-- Medio tiempo -->
     <option>3Q</option>
     <option>4Q</option>
     <option>OT</option>
@@ -52,12 +54,14 @@
   </p>
 </div>
 
+<!-- POSESIÓN -->
 <div class="box">
   <h2>Posesión</h2>
   <button onclick="setPossession('home')">Local</button>
   <button onclick="setPossession('away')">Visitante</button>
 </div>
 
+<!-- ANOTACIONES -->
 <div class="box">
   <h2>Anotaciones</h2>
   <button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
@@ -73,6 +77,7 @@
   <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
 </div>
 
+<!-- ENCUESTA -->
 <div class="box">
   <h2>Encuesta: ¿Quién ganará?</h2>
   <button onclick="enablePoll(true)">Activar encuesta</button>
@@ -80,19 +85,21 @@
   <div id="poll_summary" style="margin-top:10px; font-size:14px;"></div>
 </div>
 
+<!-- FINAL / RESET -->
 <div class="box">
   <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
   <button style="background:#555;color:white;margin-left:10px;" onclick="resetGame()">Reset sin guardar</button>
 </div>
 
 <script>
-  // Referencias a Firebase (db viene de firebase.js)
+  // ================== FIREBASE ==================
   const refTeams = db.ref("teams");
   const refGame  = db.ref("game");
 
+  // Orden permitido de cuartos
   const QUARTER_ORDER = ["1Q", "2Q", "MT", "3Q", "4Q", "OT"];
 
-  // ===== FRASES EPICAS =====
+  // ================== FRASES ÉPICAS ==================
   const FRASES_TD = [
     "con una jugada explosiva que rompe la defensa.",
     "tras una serie ofensiva perfecta que culmina en las diagonales.",
@@ -183,6 +190,7 @@
     "sumando dos puntos que amplían la ventaja en el momento justo."
   ];
 
+  // ================== NARRADOR ==================
   function extraContexto({ esOT, esRemontada, esCerrado, esPaliza }) {
     if (esOT)       return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
     if (esRemontada)return " Esta jugada completa una gran remontada que cambia la historia del partido.";
@@ -231,7 +239,7 @@
     return `${accionBase} ${frase}${extra}`.trim();
   }
 
-  // ===== LÓGICA DEL PANEL =====
+  // ================== LÓGICA DEL PANEL ==================
 
   function addTeam() {
     const name  = document.getElementById("new_team_name").value.trim();
@@ -253,6 +261,7 @@
       });
   }
 
+  // llenar selects de equipos
   refTeams.on("value", snap => {
     const teams = snap.val() || {};
     const homeSel = document.getElementById("team_home_select");
@@ -265,6 +274,7 @@
     }
   });
 
+  // Control de cuartos con secuencia
   let lastQuarter = null;
 
   setInterval(() => {
@@ -274,7 +284,6 @@
     const date   = document.getElementById("date").value || "";
     const place  = document.getElementById("location").value || "";
 
-    // detectar cambio de cuarto y escribir al timeline
     if (lastQuarter === null) {
       lastQuarter = qSel;
     } else if (qSel !== lastQuarter) {
@@ -341,8 +350,7 @@
       let tipoCorto = "";
       if (tipoLabel.includes("Touchdown"))           tipoCorto = "TD";
       else if (tipoLabel.includes("Field Goal"))     tipoCorto = "FG";
-      else if (tipoLabel.includes("2pt") ||
-               tipoLabel.includes("2pt Conversion")) tipoCorto = "2PT";
+      else if (tipoLabel.includes("2pt"))           tipoCorto = "2PT";
       else if (tipoLabel.includes("Extra") ||
                tipoLabel.includes("XP"))             tipoCorto = "XP";
       else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
@@ -365,38 +373,6 @@
         score_away: newAway,
         timeline:   nuevoTimeline
       });
-    });
-  }
-
-  function enablePoll(active) {
-    refGame.update({ pollEnabled: !!active });
-  }
-
-  function resetGame() {
-    if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
-
-    refGame.set({
-      team_home: "",
-      team_away: "",
-      date: "",
-      location: "",
-      quarter: "1Q",
-      score_home: 0,
-      score_away: 0,
-      possession: null,
-      pollEnabled: false,
-      pollVotes: null,
-      timeline: []
-    }).then(() => {
-      document.getElementById("team_home_select").value = "";
-      document.getElementById("team_away_select").value = "";
-      document.getElementById("date").value = "";
-      document.getElementById("location").value = "";
-      document.getElementById("quarter").value = "1Q";
-      alert("Marcador reseteado.");
-    }).catch(err => {
-      console.error(err);
-      alert("No se pudo resetear el marcador.");
     });
   }
 
@@ -432,9 +408,9 @@
           score_home: 0,
           score_away: 0,
           possession: null,
+          timeline: [],
           pollEnabled: false,
-          pollVotes: null,
-          timeline: []
+          pollVotes: null
         });
       }).then(() => {
         document.getElementById("team_home_select").value = "";
@@ -442,6 +418,7 @@
         document.getElementById("date").value = "";
         document.getElementById("location").value = "";
         document.getElementById("quarter").value = "1Q";
+        lastQuarter = "1Q";
         alert("Partido finalizado, guardado en historial y marcador reiniciado.");
       }).catch(err => {
         console.error(err);
@@ -450,7 +427,40 @@
     });
   }
 
-  // Resumen de encuesta en el admin
+  function resetGame() {
+    if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
+
+    refGame.set({
+      team_home: "",
+      team_away: "",
+      date: "",
+      location: "",
+      quarter: "1Q",
+      score_home: 0,
+      score_away: 0,
+      possession: null,
+      timeline: [],
+      pollEnabled: false,
+      pollVotes: null
+    }).then(() => {
+      document.getElementById("team_home_select").value = "";
+      document.getElementById("team_away_select").value = "";
+      document.getElementById("date").value = "";
+      document.getElementById("location").value = "";
+      document.getElementById("quarter").value = "1Q";
+      lastQuarter = "1Q";
+      alert("Marcador reseteado.");
+    }).catch(err => {
+      console.error(err);
+      alert("No se pudo resetear el marcador.");
+    });
+  }
+
+  function enablePoll(active) {
+    refGame.update({ pollEnabled: !!active });
+  }
+
+  // Resumen de votos en admin
   refGame.on("value", snap => {
     const data = snap.val() || {};
     const votes = data.pollVotes || {};
@@ -459,29 +469,22 @@
 
     let homeCount = 0;
     let awayCount = 0;
-    let listHtml = "";
 
-    for (const deviceId in votes) {
-      const v = votes[deviceId];
+    for (const id in votes) {
+      const v = votes[id];
       if (v.team === "home") homeCount++;
       else if (v.team === "away") awayCount++;
-
-      const name = v.name || "(sin nombre)";
-      const teamName = v.team === "home"
-        ? (data.team_home || "Local")
-        : (data.team_away || "Visitante");
-
-      listHtml += `<div>${name} → ${teamName}</div>`;
     }
 
-    const total = homeCount + awayCount;
+    const total   = homeCount + awayCount;
+    const homePct = total ? Math.round((homeCount / total) * 100) : 0;
+    const awayPct = total ? Math.round((awayCount / total) * 100) : 0;
+
     summaryEl.innerHTML = `
       <p>Encuesta: <strong>${data.pollEnabled ? "ACTIVA" : "INACTIVA"}</strong></p>
-      <p>${data.team_home || "Local"}: ${homeCount} voto(s)</p>
-      <p>${data.team_away || "Visitante"}: ${awayCount} voto(s)</p>
+      <p>${data.team_home || "Local"}: ${homeCount} voto(s) (${homePct}%)</p>
+      <p>${data.team_away || "Visitante"}: ${awayCount} voto(s) (${awayPct}%)</p>
       <p>Total: ${total} voto(s)</p>
-      <hr>
-      ${listHtml || "<em>Aún no hay votos</em>"}
     `;
   });
 </script>

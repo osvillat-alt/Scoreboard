@@ -59,53 +59,25 @@
 
 <div class="box">
   <h2>Anotaciones</h2>
-<button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
-<button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
-<button onclick="addPoints('home',2,'2pt Conversion')">Conv. 2 pts Local +2</button>
-<button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
-<button onclick="addPoints('home',2,'Safety')">Safety Local +2</button><br>
+  <button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
+  <button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
+  <button onclick="addPoints('home',2,'2pt Conversion')">Conv. 2 pts Local +2</button>
+  <button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
+  <button onclick="addPoints('home',2,'Safety')">Safety Local +2</button><br>
 
-<button onclick="addPoints('away',6,'Touchdown')">TD Visitante +6</button>
-<button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
-<button onclick="addPoints('away',2,'2pt Conversion')">Conv. 2 pts Visitante +2</button>
-<button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
-<button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
-
+  <button onclick="addPoints('away',6,'Touchdown')">TD Visitante +6</button>
+  <button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
+  <button onclick="addPoints('away',2,'2pt Conversion')">Conv. 2 pts Visitante +2</button>
+  <button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
+  <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
 </div>
 
 <div class="box">
   <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
-</div>
-<div class="box">
-  <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
-  <button style="background:#555;color:white;" onclick="resetGame()">Reset sin guardar</button>
+  <button style="background:#555;color:white;margin-left:10px;" onclick="resetGame()">Reset sin guardar</button>
 </div>
 
 <script>
-
-  function resetGame() {
-  if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
-
-  refGame.set({
-    team_home: "",
-    team_away: "",
-    date: "",
-    location: "",
-    quarter: "1Q",
-    score_home: 0,
-    score_away: 0,
-    possession: null,
-    timeline: []
-  }).then(() => {
-    document.getElementById("team_home_select").value = "";
-    document.getElementById("team_away_select").value = "";
-    document.getElementById("date").value = "";
-    document.getElementById("location").value = "";
-    document.getElementById("quarter").value = "1Q";
-    alert("Marcador reseteado.");
-  });
-}
-
   // Referencias a Firebase (db viene de firebase.js)
   const refTeams = db.ref("teams");
   const refGame  = db.ref("game");
@@ -184,24 +156,23 @@
   ];
 
   const FRASES_2PT = [
-  "arriesgando con una conversión de dos puntos que sale perfecta.",
-  "demostrando agresividad ofensiva al ir por dos y conseguirlo.",
-  "aprovechando el momento para sumar dos puntos extra fundamentales.",
-  "rompiendo el guion con una jugada de dos puntos muy bien ejecutada.",
-  "mandando un mensaje claro: este equipo viene a ganar, no a conformarse con uno.",
-  "con una conversión de dos puntos que mantiene la presión sobre la defensa rival.",
-  "decidiendo no ir por el punto extra tradicional y cobrando dos completos.",
-  "con una jugada diseñada específicamente para la conversión, ejecutada a la perfección.",
-  "mostrando confianza total en la ofensiva al buscar y conseguir dos puntos más.",
-  "sumando dos puntos que pueden marcar la diferencia en un cierre apretado.",
-  "con una conversión que hace explotar a la banca y a la afición.",
-  "aprovechando la confusión defensiva para convertir dos puntos más.",
-  "arriesgando en la zona roja y siendo recompensados con dos puntos adicionales.",
-  "con una jugada engaño que termina en conversión de dos puntos.",
-  "sumando dos puntos que amplían la ventaja en el momento justo."
-];
+    "arriesgando con una conversión de dos puntos que sale perfecta.",
+    "demostrando agresividad ofensiva al ir por dos y conseguirlo.",
+    "aprovechando el momento para sumar dos puntos extra fundamentales.",
+    "rompiendo el guion con una jugada de dos puntos muy bien ejecutada.",
+    "mandando un mensaje claro: este equipo viene a ganar, no a conformarse con uno.",
+    "con una conversión de dos puntos que mantiene la presión sobre la defensa rival.",
+    "decidiendo no ir por el punto extra tradicional y cobrando dos completos.",
+    "con una jugada diseñada específicamente para la conversión, ejecutada a la perfección.",
+    "mostrando confianza total en la ofensiva al buscar y conseguir dos puntos más.",
+    "sumando dos puntos que pueden marcar la diferencia en un cierre apretado.",
+    "con una conversión que hace explotar a la banca y a la afición.",
+    "aprovechando la confusión defensiva para convertir dos puntos más.",
+    "arriesgando en la zona roja y siendo recompensados con dos puntos adicionales.",
+    "con una jugada engaño que termina en conversión de dos puntos.",
+    "sumando dos puntos que amplían la ventaja en el momento justo."
+  ];
 
-  
   function extraContexto({ esOT, esRemontada, esCerrado, esPaliza }) {
     if (esOT)       return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
     if (esRemontada)return " Esta jugada completa una gran remontada que cambia la historia del partido.";
@@ -237,12 +208,12 @@
     const esPaliza    = diffNueva >= 20;
     const esOT        = quarter === "OT";
 
-   let pool = [];
-if (tipoCorto === "TD")          pool = FRASES_TD;
-else if (tipoCorto === "FG")     pool = FRASES_FG;
-else if (tipoCorto === "XP")     pool = FRASES_XP;
-else if (tipoCorto === "2PT")    pool = FRASES_2PT;
-else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
+    let pool = [];
+    if (tipoCorto === "TD")          pool = FRASES_TD;
+    else if (tipoCorto === "FG")     pool = FRASES_FG;
+    else if (tipoCorto === "XP")     pool = FRASES_XP;
+    else if (tipoCorto === "2PT")    pool = FRASES_2PT;
+    else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
 
     const frase = pool[Math.floor(Math.random() * pool.length)] || "";
     const extra = extraContexto({ esOT, esRemontada, esCerrado, esPaliza });
@@ -347,14 +318,14 @@ else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
       const oldHome = data.score_home || 0;
       const oldAway = data.score_away || 0;
 
-     let tipoCorto = "";
-if (tipoLabel.includes("Touchdown"))           tipoCorto = "TD";
-else if (tipoLabel.includes("Field Goal"))     tipoCorto = "FG";
-else if (tipoLabel.includes("2pt") ||
-         tipoLabel.includes("2pt Conversion")) tipoCorto = "2PT";
-else if (tipoLabel.includes("Extra") ||
-         tipoLabel.includes("XP"))             tipoCorto = "XP";
-else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
+      let tipoCorto = "";
+      if (tipoLabel.includes("Touchdown"))           tipoCorto = "TD";
+      else if (tipoLabel.includes("Field Goal"))     tipoCorto = "FG";
+      else if (tipoLabel.includes("2pt") ||
+               tipoLabel.includes("2pt Conversion")) tipoCorto = "2PT";
+      else if (tipoLabel.includes("Extra") ||
+               tipoLabel.includes("XP"))             tipoCorto = "XP";
+      else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
 
       const fraseCompleta = narrarJugada(
         { ...data, score_home: oldHome, score_away: oldAway },
@@ -378,62 +349,85 @@ else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
   }
 
   function finishGame() {
-  refGame.once("value").then(snap => {
-    const data = snap.val() || {};
+    refGame.once("value").then(snap => {
+      const data = snap.val() || {};
 
-    const homeName = data.team_home || "Local";
-    const awayName = data.team_away || "Visitante";
-    const home     = data.score_home || 0;
-    const away     = data.score_away || 0;
+      const homeName = data.team_home || "Local";
+      const awayName = data.team_away || "Visitante";
+      const home     = data.score_home || 0;
+      const away     = data.score_away || 0;
 
-    const tl = data.timeline || [];
-    const finalMsg = `FINAL • El partido termina con marcador ${homeName} ${home} - ${away} ${awayName}.`;
+      const tl = data.timeline || [];
+      const finalMsg = `FINAL • El partido termina con marcador ${homeName} ${home} - ${away} ${awayName}.`;
 
-    const timestamp = Date.now();
-    const historyRef = db.ref("history").child(timestamp.toString());
+      const timestamp = Date.now();
+      const historyRef = db.ref("history").child(timestamp.toString());
 
-    const historyData = {
-      ...data,
-      finished: true,
-      timeline: [...tl, finalMsg],
-      finishedAt: timestamp
-    };
+      const historyData = {
+        ...data,
+        finished: true,
+        timeline: [...tl, finalMsg],
+        finishedAt: timestamp
+      };
 
-    // 1) Guardar en historial
-    historyRef.set(historyData).then(() => {
-      // 2) Resetear el nodo "game" para un nuevo partido
-      return refGame.set({
-        team_home: "",
-        team_away: "",
-        date: "",
-        location: "",
-        quarter: "1Q",
-        score_home: 0,
-        score_away: 0,
-        possession: null,
-        timeline: []
-      });
+      // 1) Guardar el partido en historial
+      historyRef.set(historyData)
+        .then(() => {
+          // 2) Resetear el nodo "game" para un nuevo partido
+          return refGame.set({
+            team_home: "",
+            team_away: "",
+            date: "",
+            location: "",
+            quarter: "1Q",
+            score_home: 0,
+            score_away: 0,
+            possession: null,
+            timeline: []
+          });
+        })
+        .then(() => {
+          // 3) Limpiar campos del panel admin
+          document.getElementById("team_home_select").value = "";
+          document.getElementById("team_away_select").value = "";
+          document.getElementById("date").value = "";
+          document.getElementById("location").value = "";
+          document.getElementById("quarter").value = "1Q";
+
+          alert("Partido finalizado, guardado en historial y marcador reiniciado.");
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Ocurrió un error al finalizar el partido.");
+        });
+    });
+  }
+
+  function resetGame() {
+    if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
+
+    refGame.set({
+      team_home: "",
+      team_away: "",
+      date: "",
+      location: "",
+      quarter: "1Q",
+      score_home: 0,
+      score_away: 0,
+      possession: null,
+      timeline: []
     }).then(() => {
-      // 3) Limpiar campos del panel admin
       document.getElementById("team_home_select").value = "";
       document.getElementById("team_away_select").value = "";
       document.getElementById("date").value = "";
       document.getElementById("location").value = "";
       document.getElementById("quarter").value = "1Q";
-
-      alert("Partido finalizado, guardado en historial y marcador reiniciado.");
+      alert("Marcador reseteado.");
     }).catch(err => {
       console.error(err);
-      alert("Ocurrió un error al finalizar el partido.");
+      alert("No se pudo resetear el marcador.");
     });
-  });
-}
-plays: [
-  { team: "home", pts: 6, tipo: "TD", text: "1Q • TD..." },
-  { team: "home", pts: 1, tipo: "XP", text: "1Q • XP..." },
-  ...
-]
-
+  }
 </script>
 
 </body>

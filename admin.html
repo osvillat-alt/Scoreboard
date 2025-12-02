@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administrador del Marcador</title>
 
-  <!-- Firebase compat (para usar firebase.initializeApp y firebase.database) -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
   <script src="firebase.js"></script>
@@ -44,7 +44,11 @@
     <option>3Q</option>
     <option>4Q</option>
     <option>OT</option>
+    <option>MT</option> <!-- Medio tiempo -->
   </select>
+  <p style="font-size:14px;opacity:0.8;margin-top:5px;">
+    MT = Medio tiempo
+  </p>
 </div>
 
 <div class="box">
@@ -71,11 +75,132 @@
 </div>
 
 <script>
-  // db ya está declarado en firebase.js → aquí solo usamos esa instancia
+  // Referencias a Firebase (db viene de firebase.js)
   const refTeams = db.ref("teams");
   const refGame  = db.ref("game");
 
-  // Agregar nuevo equipo
+  // ===== FRASES EPICAS =====
+  const FRASES_TD = [
+    "con una jugada explosiva que rompe la defensa.",
+    "tras una serie ofensiva perfecta que culmina en las diagonales.",
+    "con un acarreo poderoso que nadie pudo detener.",
+    "gracias a un pase preciso que encuentra a su receptor en la zona de anotación.",
+    "rematando una larga ofensiva que desgastó por completo a la defensa rival.",
+    "aprovechando un error defensivo para convertir seis puntos vitales.",
+    "con una jugada sorpresa que tomó desprevenida a la defensiva.",
+    "mostrando poder ofensivo y autoridad en la zona roja.",
+    "con una gran combinación por aire que termina en touchdown.",
+    "tras mover las cadenas con calma y ejecutar a la perfección en zona roja.",
+    "encendiendo al público con un touchdown espectacular.",
+    "demostrando sangre fría en tercera oportunidad cerca de la zona de anotación.",
+    "con una ofensiva rápida que recorrió el campo en pocos intentos.",
+    "aprovechando cada yarda para llegar a la zona prometida.",
+    "con un ataque terrestre contundente que abre el camino a seis puntos."
+  ];
+
+  const FRASES_FG = [
+    "con un gol de campo seguro que suma tres puntos al marcador.",
+    "aprovechando la oportunidad y eligiendo la vía segura de tres puntos.",
+    "con una patada precisa que pasa justo entre los postes.",
+    "que les permite acercarse en el marcador con un FG efectivo.",
+    "añadiendo tres puntos que podrían ser clave más adelante.",
+    "mostrando tranquilidad del pateador en un intento importante.",
+    "con un gol de campo que mantiene viva la ofensiva.",
+    "acortando la distancia con una patada bien ejecutada.",
+    "castigando la defensa rival con tres puntos desde la larga distancia.",
+    "tras quedarse cortos en zona roja pero capitalizando con un FG.",
+    "asegurando puntos en una serie que parecía perderse.",
+    "con una patada que mantiene la presión sobre el rival.",
+    "sumando de a poco pero sin dejar de anotar.",
+    "que mantiene el juego dentro de una posesión.",
+    "con un gol de campo que silencía momentáneamente a la afición rival."
+  ];
+
+  const FRASES_XP = [
+    "convirtiendo sin problemas el punto extra.",
+    "asegurando el punto adicional para completar la serie.",
+    "sumando un punto más que redondea la anotación.",
+    "manteniendo la confianza en la unidad de gol de campo.",
+    "con una patada sencilla pero importante para el marcador.",
+    "completando los siete puntos tras el touchdown.",
+    "demostrando solidez en la ejecución del punto extra.",
+    "sin margen de error en el intento de XP.",
+    "sumando un punto que podría marcar diferencia al final.",
+    "cerrando la ofensiva con el adicional bueno.",
+    "mostrando seguridad total del pateador.",
+    "con un XP perfecto que no deja dudas.",
+    "añadiendo un punto más a la cuenta.",
+    "confirmando la ventaja obtenida con el touchdown.",
+    "redondeando una gran serie ofensiva."
+  ];
+
+  const FRASES_SAFETY = [
+    "gracias a una defensa implacable que encierra al rival en su propia zona.",
+    "aprovechando la presión defensiva para forzar el error en la zona de anotación.",
+    "con una jugada defensiva enorme que termina en safety.",
+    "demostrando un front defensivo dominante que no da respiro.",
+    "forzando al mariscal rival a cometer un error costoso en su propia zona.",
+    "haciendo sentir el peso de la defensiva y sumando dos puntos importantes.",
+    "castigando a la ofensiva rival con una jugada espectacular detrás de la línea.",
+    "con un safety que cambia la inercia del partido.",
+    "demostrando que la defensa también puede poner puntos en el marcador.",
+    "aprovechando una mala protección para encerrar al corredor.",
+    "haciendo retroceder tanto a la ofensiva rival que terminan dentro de su propia zona.",
+    "con una lectura perfecta de la jugada ofensiva para conseguir el safety.",
+    "sumando dos puntos defensivos que levantan al equipo.",
+    "dejando claro que no hay espacio para errores cerca de la propia zona.",
+    "con una jugada defensiva que prende fuego a la banca y a la afición."
+  ];
+
+  function extraContexto({ esOT, esRemontada, esCerrado, esPaliza }) {
+    if (esOT)       return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
+    if (esRemontada)return " Esta jugada completa una gran remontada que cambia la historia del partido.";
+    if (esCerrado)  return " El marcador sigue muy cerrado y cada punto pesa muchísimo.";
+    if (esPaliza)   return " La ventaja sigue creciendo y el dominio es cada vez más claro.";
+    return "";
+  }
+
+  function narrarJugada(data, teamSide, pts, tipoCorto) {
+    const quarter      = data.quarter || "";
+    const nombreEquipo = teamSide === "home" ? data.team_home : data.team_away;
+
+    const oldHome = data.score_home || 0;
+    const oldAway = data.score_away || 0;
+
+    const newHome = teamSide === "home" ? oldHome + pts : oldHome;
+    const newAway = teamSide === "away" ? oldAway + pts : oldAway;
+
+    const accionBase = `${quarter} • ${tipoCorto} de ${nombreEquipo} (${pts} pts)`;
+
+    const diffNueva = Math.abs(newHome - newAway);
+
+    const ibaPerdiendo =
+      (teamSide === "home" && oldHome < oldAway) ||
+      (teamSide === "away" && oldAway < oldHome);
+
+    const ahoraVaGanando =
+      (teamSide === "home" && newHome > newAway) ||
+      (teamSide === "away" && newAway > newHome);
+
+    const esRemontada = ibaPerdiendo && ahoraVaGanando;
+    const esCerrado   = diffNueva <= 3;
+    const esPaliza    = diffNueva >= 20;
+    const esOT        = quarter === "OT";
+
+    let pool = [];
+    if (tipoCorto === "TD")      pool = FRASES_TD;
+    else if (tipoCorto === "FG") pool = FRASES_FG;
+    else if (tipoCorto === "XP") pool = FRASES_XP;
+    else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
+
+    const frase = pool[Math.floor(Math.random() * pool.length)] || "";
+    const extra = extraContexto({ esOT, esRemontada, esCerrado, esPaliza });
+
+    return `${accionBase} ${frase}${extra}`.trim();
+  }
+
+  // ===== LÓGICA DEL PANEL =====
+
   function addTeam() {
     const name  = document.getElementById("new_team_name").value.trim();
     const color = document.getElementById("new_team_color").value;
@@ -85,7 +210,7 @@
       return;
     }
 
-    refTeams.child(name).set({ color: color })
+    refTeams.child(name).set({ color })
       .then(() => {
         alert("Equipo guardado");
         document.getElementById("new_team_name").value = "";
@@ -96,72 +221,128 @@
       });
   }
 
-  // Llenar selects de equipos cuando cambie la lista en Firebase
   refTeams.on("value", snap => {
     const teams = snap.val() || {};
-
     const homeSel = document.getElementById("team_home_select");
     const awaySel = document.getElementById("team_away_select");
-
     homeSel.innerHTML = "";
     awaySel.innerHTML = "";
-
     for (const t in teams) {
       homeSel.innerHTML += `<option>${t}</option>`;
       awaySel.innerHTML += `<option>${t}</option>`;
     }
   });
 
-  // Guardar cada 1.5s la info básica del partido
+  let lastQuarter = null;
+
   setInterval(() => {
+    const qSel   = document.getElementById("quarter").value || "1Q";
+    const home   = document.getElementById("team_home_select").value || "";
+    const away   = document.getElementById("team_away_select").value || "";
+    const date   = document.getElementById("date").value || "";
+    const place  = document.getElementById("location").value || "";
+
+    // detectar cambio de cuarto y escribir al timeline
+    if (lastQuarter === null) {
+      lastQuarter = qSel;
+    } else if (qSel !== lastQuarter) {
+      refGame.once("value").then(snap => {
+        const data = snap.val() || {};
+        const tl = data.timeline || [];
+
+        let msg = "";
+        if (qSel === "MT") {
+          msg = `Termina el ${lastQuarter}. Entramos a medio tiempo.`;
+        } else if (lastQuarter === "MT") {
+          msg = `Termina el medio tiempo, comienza el ${qSel}.`;
+        } else {
+          msg = `Se termina el ${lastQuarter}. Comienza el ${qSel}.`;
+        }
+
+        const nuevoTL = [...tl, msg];
+
+        refGame.update({
+          team_home: home,
+          team_away: away,
+          date:      date,
+          location:  place,
+          quarter:   qSel,
+          timeline:  nuevoTL
+        });
+
+        lastQuarter = qSel;
+      });
+      return; // ya actualizamos, no seguimos abajo
+    }
+
+    // actualización normal
     refGame.update({
-      team_home: document.getElementById("team_home_select").value || "",
-      team_away: document.getElementById("team_away_select").value || "",
-      date:      document.getElementById("date").value || "",
-      location:  document.getElementById("location").value || "",
-      quarter:   document.getElementById("quarter").value || "1Q"
+      team_home: home,
+      team_away: away,
+      date:      date,
+      location:  place,
+      quarter:   qSel
     });
   }, 1500);
 
-  // Cambiar posesión
   function setPossession(team) {
     refGame.update({ possession: team });
   }
 
-  // Añadir puntos + línea al timeline
-  function addPoints(side, points, type) {
+  function addPoints(teamSide, pts, tipoLabel) {
     refGame.once("value").then(snap => {
       const data = snap.val() || {};
-      const currentHome = data.score_home || 0;
-      const currentAway = data.score_away || 0;
-      const quarter     = data.quarter || "1Q";
-      const timeline    = data.timeline || [];
 
-      const teamName = side === "home" ? data.team_home : data.team_away;
+      const oldHome = data.score_home || 0;
+      const oldAway = data.score_away || 0;
 
-      // Texto simple por ahora (luego lo hacemos más épico)
-      const desc = `${quarter} • ${type} de ${teamName} (${points} pts)`;
+      let tipoCorto = "";
+      if (tipoLabel.includes("Touchdown"))      tipoCorto = "TD";
+      else if (tipoLabel.includes("Field Goal"))tipoCorto = "FG";
+      else if (tipoLabel.includes("Extra") ||
+               tipoLabel.includes("XP"))        tipoCorto = "XP";
+      else if (tipoLabel.includes("Safety"))    tipoCorto = "Safety";
 
-      timeline.push(desc);
+      const fraseCompleta = narrarJugada(
+        { ...data, score_home: oldHome, score_away: oldAway },
+        teamSide,
+        pts,
+        tipoCorto
+      );
 
-      const update = {
-        timeline: timeline
-      };
+      const timelineActual = data.timeline || [];
+      const nuevoTimeline  = [...timelineActual, fraseCompleta];
 
-      if (side === "home") {
-        update.score_home = currentHome + points;
-      } else {
-        update.score_away = currentAway + points;
-      }
+      const newHome = teamSide === "home" ? oldHome + pts : oldHome;
+      const newAway = teamSide === "away" ? oldAway + pts : oldAway;
 
-      refGame.update(update);
+      refGame.update({
+        score_home: newHome,
+        score_away: newAway,
+        timeline:   nuevoTimeline
+      });
     });
   }
 
-  // Marcar partido como finalizado (luego podemos usarlo para mostrar mensaje especial)
   function finishGame() {
-    refGame.update({ finished: true });
-    alert("Partido marcado como FINALIZADO");
+    refGame.once("value").then(snap => {
+      const data = snap.val() || {};
+      const homeName = data.team_home || "Local";
+      const awayName = data.team_away || "Visitante";
+      const home = data.score_home || 0;
+      const away = data.score_away || 0;
+
+      const tl = data.timeline || [];
+      const finalMsg = `FINAL • El partido termina con marcador ${homeName} ${home} - ${away} ${awayName}.`;
+      const nuevoTL = [...tl, finalMsg];
+
+      refGame.update({
+        finished: true,
+        timeline: nuevoTL
+      }).then(() => {
+        alert("Partido finalizado");
+      });
+    });
   }
 </script>
 

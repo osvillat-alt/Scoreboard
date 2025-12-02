@@ -76,8 +76,36 @@
 <div class="box">
   <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
 </div>
+<div class="box">
+  <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
+  <button style="background:#555;color:white;" onclick="resetGame()">Reset sin guardar</button>
+</div>
 
 <script>
+
+  function resetGame() {
+  if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
+
+  refGame.set({
+    team_home: "",
+    team_away: "",
+    date: "",
+    location: "",
+    quarter: "1Q",
+    score_home: 0,
+    score_away: 0,
+    possession: null,
+    timeline: []
+  }).then(() => {
+    document.getElementById("team_home_select").value = "";
+    document.getElementById("team_away_select").value = "";
+    document.getElementById("date").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("quarter").value = "1Q";
+    alert("Marcador reseteado.");
+  });
+}
+
   // Referencias a Firebase (db viene de firebase.js)
   const refTeams = db.ref("teams");
   const refGame  = db.ref("game");
@@ -350,25 +378,62 @@ else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
   }
 
   function finishGame() {
-    refGame.once("value").then(snap => {
-      const data = snap.val() || {};
-      const homeName = data.team_home || "Local";
-      const awayName = data.team_away || "Visitante";
-      const home = data.score_home || 0;
-      const away = data.score_away || 0;
+  refGame.once("value").then(snap => {
+    const data = snap.val() || {};
 
-      const tl = data.timeline || [];
-      const finalMsg = `FINAL • El partido termina con marcador ${homeName} ${home} - ${away} ${awayName}.`;
-      const nuevoTL = [...tl, finalMsg];
+    const homeName = data.team_home || "Local";
+    const awayName = data.team_away || "Visitante";
+    const home     = data.score_home || 0;
+    const away     = data.score_away || 0;
 
-      refGame.update({
-        finished: true,
-        timeline: nuevoTL
-      }).then(() => {
-        alert("Partido finalizado");
+    const tl = data.timeline || [];
+    const finalMsg = `FINAL • El partido termina con marcador ${homeName} ${home} - ${away} ${awayName}.`;
+
+    const timestamp = Date.now();
+    const historyRef = db.ref("history").child(timestamp.toString());
+
+    const historyData = {
+      ...data,
+      finished: true,
+      timeline: [...tl, finalMsg],
+      finishedAt: timestamp
+    };
+
+    // 1) Guardar en historial
+    historyRef.set(historyData).then(() => {
+      // 2) Resetear el nodo "game" para un nuevo partido
+      return refGame.set({
+        team_home: "",
+        team_away: "",
+        date: "",
+        location: "",
+        quarter: "1Q",
+        score_home: 0,
+        score_away: 0,
+        possession: null,
+        timeline: []
       });
+    }).then(() => {
+      // 3) Limpiar campos del panel admin
+      document.getElementById("team_home_select").value = "";
+      document.getElementById("team_away_select").value = "";
+      document.getElementById("date").value = "";
+      document.getElementById("location").value = "";
+      document.getElementById("quarter").value = "1Q";
+
+      alert("Partido finalizado, guardado en historial y marcador reiniciado.");
+    }).catch(err => {
+      console.error(err);
+      alert("Ocurrió un error al finalizar el partido.");
     });
-  }
+  });
+}
+plays: [
+  { team: "home", pts: 6, tipo: "TD", text: "1Q • TD..." },
+  { team: "home", pts: 1, tipo: "XP", text: "1Q • XP..." },
+  ...
+]
+
 </script>
 
 </body>

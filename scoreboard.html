@@ -42,50 +42,66 @@
 </div>
 
 <script>
+  // db viene de firebase.js
+  const refTeams = db.ref("teams");
+  const refGame  = db.ref("game");
 
-const refTeams = db.ref("teams");
-const refGame = db.ref("game");
+  let teamColors = {};
 
-let teamColors = {};
-
-refTeams.on("value", snap => {
+  // Colores guardados por equipo
+  refTeams.on("value", snap => {
     teamColors = snap.val() || {};
-});
+  });
 
-refGame.on("value", snap => {
+  refGame.on("value", snap => {
     const data = snap.val();
     if (!data) return;
 
-    document.getElementById("game_info").innerText =
-        `${data.location} • ${data.date}`;
+    // Encabezado
+    const info = `${data.location || ""} • ${data.date || ""}`.trim();
+    document.getElementById("game_info").innerText = info || " ";
 
-    document.getElementById("team_home").innerText = data.team_home;
-    document.getElementById("team_away").innerText = data.team_away;
+    // Nombres de equipos
+    document.getElementById("team_home").innerText = data.team_home || "";
+    document.getElementById("team_away").innerText = data.team_away || "";
 
+    // Colores de caja según teams
     document.getElementById("team_home_box").style.background =
-        teamColors[data.team_home]?.color || "#333";
+      teamColors[data.team_home]?.color || "#2b4f63";
 
     document.getElementById("team_away_box").style.background =
-        teamColors[data.team_away]?.color || "#333";
+      teamColors[data.team_away]?.color || "#1c247a";
 
-    document.getElementById("score_home").innerText = data.score_home;
-    document.getElementById("score_away").innerText = data.score_away;
+    // Marcador
+    document.getElementById("score_home").innerText = data.score_home ?? 0;
+    document.getElementById("score_away").innerText = data.score_away ?? 0;
 
-    document.getElementById("quarter").innerText = `Cuarto: ${data.quarter}`;
+    // Estado del partido / cuarto / medio tiempo
+    const qEl = document.getElementById("quarter");
+    if (data.finished) {
+      qEl.innerText = "Partido finalizado";
+    } else if (data.quarter === "MT") {
+      qEl.innerText = "Medio tiempo";
+    } else {
+      qEl.innerText = `Cuarto: ${data.quarter || "1Q"}`;
+    }
 
+    // Posesión
     document.getElementById("pos_home").innerText =
-        data.possession === "home" ? "⬅ Posesión" : "";
+      data.possession === "home" ? "⬅ Posesión" : "";
 
     document.getElementById("pos_away").innerText =
-        data.possession === "away" ? "Posesión ➡" : "";
+      data.possession === "away" ? "Posesión ➡" : "";
 
+    // Timeline
     let html = "";
     (data.timeline || []).forEach(e => {
-        html += `<div class="timeline-item">${e}</div>`;
+      html += `<div class="timeline-item">${e}</div>`;
     });
     document.getElementById("timeline").innerHTML = html;
-});
+  });
 </script>
+
 
 </body>
 </html>

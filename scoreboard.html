@@ -1,70 +1,188 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marcador en Vivo</title>
-
-  <link rel="stylesheet" href="style.css">
 
   <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
   <script src="firebase.js"></script>
+
+  <style>
+    body { background:#000; color:white; font-family:Arial, sans-serif; margin:0; padding:0; }
+    .container { max-width:1000px; margin:0 auto; padding:20px; }
+
+    .top-info {
+      text-align:center;
+      font-size:18px;
+      margin-bottom:10px;
+      border-bottom:2px solid #ffc800;
+      padding-bottom:8px;
+    }
+
+    .score-row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin:20px 0;
+    }
+
+    .team-box {
+      flex:1;
+      text-align:center;
+      padding:15px 10px;
+      border-radius:10px;
+      font-size:22px;
+      font-weight:bold;
+    }
+
+    .team-home { background:#6ec9ff; color:#000; margin-right:10px; }
+    .team-away { background:#001d9b; margin-left:10px; }
+
+    .score-middle {
+      font-size:40px;
+      min-width:140px;
+      text-align:center;
+    }
+
+    .possession-chip {
+      display:inline-block;
+      margin-top:8px;
+      font-size:14px;
+      padding:4px 10px;
+      border-radius:20px;
+      border:1px solid #fff;
+    }
+
+    .quarter-text { text-align:center; font-size:22px; margin-bottom:20px; }
+
+    .timeline-box {
+      border-radius:8px;
+      background:#111;
+      padding:15px;
+    }
+    .timeline-box h2 { margin-top:0; }
+    .timeline-item {
+      border-bottom:1px solid #333;
+      padding:6px 4px;
+      font-size:14px;
+    }
+    .timeline-item:last-child { border-bottom:none; }
+
+    /* ENCUESTA: barras tipo ESPN */
+    .poll-bars {
+      width:100%;
+      max-width:500px;
+      margin:0 auto;
+    }
+
+    .poll-bar {
+      margin:8px 0;
+    }
+
+    .poll-bar-header {
+      display:flex;
+      justify-content:space-between;
+      font-size:13px;
+      margin-bottom:2px;
+    }
+
+    .poll-bar-track {
+      width:100%;
+      height:10px;
+      background:#333;
+      border-radius:4px;
+      overflow:hidden;
+    }
+
+    .poll-bar-fill {
+      height:100%;
+      width:0%;
+      transition:width 0.3s ease;
+    }
+
+    .poll-bar-home { background:#f7a6a6; }
+    .poll-bar-away { background:#94b3ff; }
+
+    #poll_section h2 { margin-bottom:5px; }
+  </style>
 </head>
+
 <body>
+<div class="container">
+  <!-- INFO SUPERIOR -->
+  <div class="top-info" id="top_info">Lugar • Fecha</div>
 
-<div class="scoreboard-container">
-  <div class="game-header" id="game_info">
-    <!-- Lugar • Fecha -->
-  </div>
-
-  <div class="score-bar">
-    <div class="team-box" id="team_home_box">
-      <div class="team-name" id="team_home">LOCAL</div>
-      <div class="score" id="score_home">0</div>
-      <div class="possession" id="pos_home"></div>
+  <!-- MARCADOR -->
+  <div class="score-row">
+    <div class="team-box team-home">
+      <div id="home_name">Local</div>
+      <div id="home_possession" class="possession-chip" style="visibility:hidden;">Posesión</div>
     </div>
 
-    <div class="score-center">
-      <span id="score_home_small"></span>
-      <span>VS</span>
-      <span id="score_away_small"></span>
+    <div class="score-middle">
+      <span id="score_home">0</span>
+      <span> - </span>
+      <span id="score_away">0</span>
     </div>
 
-    <div class="team-box" id="team_away_box">
-      <div class="team-name" id="team_away">VISITANTE</div>
-      <div class="score" id="score_away">0</div>
-      <div class="possession" id="pos_away"></div>
+    <div class="team-box team-away">
+      <div id="away_name">Visitante</div>
+      <div id="away_possession" class="possession-chip" style="visibility:hidden;">Posesión</div>
     </div>
   </div>
 
-  <div class="quarter-box" id="quarter">
-    Cuarto: 1Q
+  <!-- CUARTO -->
+  <div class="quarter-text" id="quarter_text">Cuarto: 1Q</div>
+
+  <!-- ENCUESTA -->
+  <div id="poll_section" style="display:none; margin-top:25px;">
+    <h2 style="text-align:center;">Encuesta: ¿Quién ganará?</h2>
+    <p id="poll_question" style="text-align:center; margin-bottom:10px;"></p>
+
+    <div class="poll-bars">
+      <div class="poll-bar">
+        <div class="poll-bar-header">
+          <span id="poll_home_name">Local</span>
+          <span id="poll_home_pct">0%</span>
+        </div>
+        <div class="poll-bar-track">
+          <div id="poll_home_fill" class="poll-bar-fill poll-bar-home"></div>
+        </div>
+      </div>
+
+      <div class="poll-bar">
+        <div class="poll-bar-header">
+          <span id="poll_away_name">Visitante</span>
+          <span id="poll_away_pct">0%</span>
+        </div>
+        <div class="poll-bar-track">
+          <div id="poll_away_fill" class="poll-bar-fill poll-bar-away"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="poll_buttons" style="text-align:center; margin-top:12px;">
+      <button id="vote_home_btn" style="padding:8px 14px; margin:4px;">Votar Local</button>
+      <button id="vote_away_btn" style="padding:8px 14px; margin:4px;">Votar Visitante</button>
+    </div>
+
+    <p id="poll_status" style="text-align:center; font-size:13px; opacity:0.85; margin-top:6px;"></p>
   </div>
 
-  <!-- Encuesta -->
-  <div id="poll_section" style="display:none; margin-top:25px; text-align:center;">
-    <h2>Encuesta: ¿Quién ganará?</h2>
-    <p id="poll_question" style="margin-bottom:10px;"></p>
-    <input id="poll_name" placeholder="Tu nombre (opcional)" style="padding:8px; max-width:250px; width:80%;"><br><br>
-    <button id="vote_home_btn" style="padding:10px 15px; margin:5px;"></button>
-    <button id="vote_away_btn" style="padding:10px 15px; margin:5px;"></button>
-    <p id="poll_status" style="margin-top:10px; font-size:14px; opacity:0.85;"></p>
-  </div>
-
-  <div class="timeline-box">
-    <h2>Crónica del Partido</h2>
-    <div id="timeline"></div>
+  <!-- TIMELINE -->
+  <div class="timeline-box" style="margin-top:25px;">
+    <h2>Crónica del partido</h2>
+    <div id="timeline_list"></div>
   </div>
 </div>
 
 <script>
-  // db viene de firebase.js
-  const refTeams = db.ref("teams");
-  const refGame  = db.ref("game");
+  const refGame = db.ref("game");
 
-  // Identificador de dispositivo para limitar a un voto
+  // ID de dispositivo (para limitar 1 voto por device)
   const DEVICE_ID = (function () {
     let id = localStorage.getItem("scoreboardDeviceId");
     if (!id) {
@@ -74,16 +192,7 @@
     return id;
   })();
 
-  let teamColors = {};
-
-  // Colores de equipos
-  refTeams.on("value", snap => {
-    teamColors = snap.val() || {};
-  });
-
   function vote(teamSide) {
-    const name = document.getElementById("poll_name").value.trim();
-
     refGame.child("pollVotes").child(DEVICE_ID).get().then(snap => {
       if (snap.exists()) {
         document.getElementById("poll_status").innerText = "Ya has votado en esta encuesta.";
@@ -92,7 +201,6 @@
 
       return refGame.child("pollVotes").child(DEVICE_ID).set({
         team: teamSide,
-        name: name || null,
         at: Date.now()
       });
     }).then(result => {
@@ -105,92 +213,102 @@
     });
   }
 
-  // Asignar handlers a botones de la encuesta
-  window.addEventListener("DOMContentLoaded", () => {
-    const homeBtn = document.getElementById("vote_home_btn");
-    const awayBtn = document.getElementById("vote_away_btn");
-    if (homeBtn) homeBtn.onclick = () => vote("home");
-    if (awayBtn) awayBtn.onclick = () => vote("away");
-  });
+  document.getElementById("vote_home_btn").onclick = () => vote("home");
+  document.getElementById("vote_away_btn").onclick = () => vote("away");
 
   refGame.on("value", snap => {
-    const data = snap.val();
-    if (!data) return;
+    const data = snap.val() || {};
 
-    // Encabezado
-    const info = `${data.location || ""} • ${data.date || ""}`.trim();
-    document.getElementById("game_info").innerText = info || " ";
+    // Equipos, marcador, lugar/fecha
+    const homeName = data.team_home || "Local";
+    const awayName = data.team_away || "Visitante";
 
-    // Nombres
-    const homeName = data.team_home || "";
-    const awayName = data.team_away || "";
+    document.getElementById("home_name").innerText  = homeName;
+    document.getElementById("away_name").innerText  = awayName;
+    document.getElementById("score_home").innerText = data.score_home || 0;
+    document.getElementById("score_away").innerText = data.score_away || 0;
 
-    document.getElementById("team_home").innerText = homeName || "LOCAL";
-    document.getElementById("team_away").innerText = awayName || "VISITANTE";
+    const place = data.location || "";
+    const date  = data.date || "";
+    document.getElementById("top_info").innerText =
+      (place ? place : "") + (place && date ? " • " : "") + (date ? date : "");
 
-    // Colores de cajas
-    document.getElementById("team_home_box").style.background =
-      (teamColors[homeName] && teamColors[homeName].color) || "#2b4f63";
+    // posesión
+    const poss = data.possession || null;
+    document.getElementById("home_possession").style.visibility =
+      poss === "home" ? "visible" : "hidden";
+    document.getElementById("away_possession").style.visibility =
+      poss === "away" ? "visible" : "hidden";
 
-    document.getElementById("team_away_box").style.background =
-      (teamColors[awayName] && teamColors[awayName].color) || "#1c247a";
-
-    // Marcador
-    const sh = data.score_home ?? 0;
-    const sa = data.score_away ?? 0;
-
-    document.getElementById("score_home").innerText = sh;
-    document.getElementById("score_away").innerText = sa;
-
-    document.getElementById("score_home_small").innerText = sh;
-    document.getElementById("score_away_small").innerText = sa;
-
-    // Estado del partido / cuarto
-    const qEl = document.getElementById("quarter");
-    if (data.finished) {
-      qEl.innerText = "Partido finalizado";
-    } else if (data.quarter === "MT") {
-      qEl.innerText = "Medio tiempo";
+    // cuarto
+    let qText = data.quarter || "1Q";
+    if (qText === "MT") {
+      document.getElementById("quarter_text").innerText = "Medio tiempo";
     } else {
-      qEl.innerText = `Cuarto: ${data.quarter || "1Q"}`;
+      document.getElementById("quarter_text").innerText = "Cuarto: " + qText;
     }
 
-    // Posesión
-    document.getElementById("pos_home").innerText =
-      data.possession === "home" ? "⬅ Posesión" : "";
+    // timeline
+    const tl = data.timeline || [];
+    const tlList = document.getElementById("timeline_list");
+    tlList.innerHTML = "";
+    // mostramos del más antiguo al más reciente
+    tl.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "timeline-item";
+      div.textContent = item;
+      tlList.appendChild(div);
+    });
 
-    document.getElementById("pos_away").innerText =
-      data.possession === "away" ? "Posesión ➡" : "";
-
-    // Encuesta
+    // ========== ENCUESTA ==========
     const pollSection  = document.getElementById("poll_section");
     const pollQuestion = document.getElementById("poll_question");
-    const voteHomeBtn  = document.getElementById("vote_home_btn");
-    const voteAwayBtn  = document.getElementById("vote_away_btn");
+    const homeNameEl   = document.getElementById("poll_home_name");
+    const awayNameEl   = document.getElementById("poll_away_name");
+    const homePctEl    = document.getElementById("poll_home_pct");
+    const awayPctEl    = document.getElementById("poll_away_pct");
+    const homeFill     = document.getElementById("poll_home_fill");
+    const awayFill     = document.getElementById("poll_away_fill");
+    const pollButtons  = document.getElementById("poll_buttons");
     const pollStatus   = document.getElementById("poll_status");
 
     if (data.pollEnabled) {
       pollSection.style.display = "block";
-      pollQuestion.innerText = `¿Quién ganará el encuentro: ${homeName || "Local"} o ${awayName || "Visitante"}?`;
-      voteHomeBtn.innerText  = homeName || "Local";
-      voteAwayBtn.innerText  = awayName || "Visitante";
 
-      const yaVoto = data.pollVotes && data.pollVotes[DEVICE_ID];
+      pollQuestion.innerText = `¿Quién ganará el encuentro: ${homeName} o ${awayName}?`;
+      homeNameEl.innerText   = homeName;
+      awayNameEl.innerText   = awayName;
+
+      const votes = data.pollVotes || {};
+      let homeCount = 0;
+      let awayCount = 0;
+
+      for (const id in votes) {
+        const v = votes[id];
+        if (v.team === "home") homeCount++;
+        else if (v.team === "away") awayCount++;
+      }
+
+      const total   = homeCount + awayCount;
+      const homePct = total ? Math.round((homeCount / total) * 100) : 0;
+      const awayPct = total ? Math.round((awayCount / total) * 100) : 0;
+
+      homePctEl.innerText     = homePct + "%";
+      awayPctEl.innerText     = awayPct + "%";
+      homeFill.style.width    = homePct + "%";
+      awayFill.style.width    = awayPct + "%";
+
+      const yaVoto = votes[DEVICE_ID];
       if (yaVoto) {
+        pollButtons.style.display = "none";
         pollStatus.innerText = "Ya has votado en esta encuesta.";
       } else {
+        pollButtons.style.display = "block";
         pollStatus.innerText = "";
       }
     } else {
       pollSection.style.display = "none";
     }
-
-    // Timeline
-    let html = "";
-    (data.timeline || []).forEach(e => {
-      html += `<div class="timeline-item">${e}</div>`;
-    });
-    document.getElementById("timeline").innerHTML = html;
   });
 </script>
 

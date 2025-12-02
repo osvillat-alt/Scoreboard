@@ -254,58 +254,75 @@
       awaySel.innerHTML += `<option>${t}</option>`;
     }
   });
+const QUARTER_ORDER = ["1Q", "2Q", "MT", "3Q", "4Q", "OT"];
 
   let lastQuarter = null;
 
-  setInterval(() => {
-    const qSel   = document.getElementById("quarter").value || "1Q";
-    const home   = document.getElementById("team_home_select").value || "";
-    const away   = document.getElementById("team_away_select").value || "";
-    const date   = document.getElementById("date").value || "";
-    const place  = document.getElementById("location").value || "";
+setInterval(() => {
+  const qSel   = document.getElementById("quarter").value || "1Q";
+  const home   = document.getElementById("team_home_select").value || "";
+  const away   = document.getElementById("team_away_select").value || "";
+  const date   = document.getElementById("date").value || "";
+  const place  = document.getElementById("location").value || "";
 
-    // detectar cambio de cuarto y escribir al timeline
-    if (lastQuarter === null) {
-      lastQuarter = qSel;
-    } else if (qSel !== lastQuarter) {
-      refGame.once("value").then(snap => {
-        const data = snap.val() || {};
-        const tl = data.timeline || [];
+  // detectar cambio de cuarto y escribir al timeline
+  if (lastQuarter === null) {
+    // primera vez que corre, tomamos el valor inicial
+    lastQuarter = qSel;
+  } else if (qSel !== lastQuarter) {
+    // VALIDAR SECUENCIA 1Q → 2Q → MT → 3Q → 4Q → OT
+    const idxOld = QUARTER_ORDER.indexOf(lastQuarter);
+    const idxNew = QUARTER_ORDER.indexOf(qSel);
 
-        let msg = "";
-        if (qSel === "MT") {
-          msg = `Termina el ${lastQuarter}. Entramos a medio tiempo.`;
-        } else if (lastQuarter === "MT") {
-          msg = `Termina el medio tiempo, comienza el ${qSel}.`;
-        } else {
-          msg = `Se termina el ${lastQuarter}. Comienza el ${qSel}.`;
-        }
-
-        const nuevoTL = [...tl, msg];
-
-        refGame.update({
-          team_home: home,
-          team_away: away,
-          date:      date,
-          location:  place,
-          quarter:   qSel,
-          timeline:  nuevoTL
-        });
-
-        lastQuarter = qSel;
-      });
-      return; // ya actualizamos, no seguimos abajo
+    // solo se permite avanzar un paso exacto
+    if (idxNew !== idxOld + 1) {
+      // regresamos el select a su valor anterior
+      document.getElementById("quarter").value = lastQuarter;
+      alert("Secuencia inválida de cuartos. El orden permitido es 1Q → 2Q → MT → 3Q → 4Q → OT.");
+      return;
     }
 
-    // actualización normal
-    refGame.update({
-      team_home: home,
-      team_away: away,
-      date:      date,
-      location:  place,
-      quarter:   qSel
+    // si la secuencia es válida, actualizamos timeline y game
+    refGame.once("value").then(snap => {
+      const data = snap.val() || {};
+      const tl = data.timeline || [];
+
+      let msg = "";
+      if (qSel === "MT") {
+        msg = `Termina el ${lastQuarter}. Entramos a medio tiempo.`;
+      } else if (lastQuarter === "MT") {
+        msg = `Termina el medio tiempo, comienza el ${qSel}.`;
+      } else {
+        msg = `Se termina el ${lastQuarter}. Comienza el ${qSel}.`;
+      }
+
+      const nuevoTL = [...tl, msg];
+
+      refGame.update({
+        team_home: home,
+        team_away: away,
+        date:      date,
+        location:  place,
+        quarter:   qSel,
+        timeline:  nuevoTL
+      });
+
+      lastQuarter = qSel;
     });
-  }, 1500);
+
+    return; // ya actualizamos, no seguimos abajo
+  }
+
+  // actualización normal sin cambio de cuarto
+  refGame.update({
+    team_home: home,
+    team_away: away,
+    date:      date,
+    location:  place,
+    quarter:   qSel
+  });
+}, 1500);
+
 
   function setPossession(team) {
     refGame.update({ possession: team });

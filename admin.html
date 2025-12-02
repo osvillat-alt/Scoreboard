@@ -155,6 +155,25 @@
     "con una jugada defensiva que prende fuego a la banca y a la afición."
   ];
 
+  const FRASES_2PT = [
+  "arriesgando con una conversión de dos puntos que sale perfecta.",
+  "demostrando agresividad ofensiva al ir por dos y conseguirlo.",
+  "aprovechando el momento para sumar dos puntos extra fundamentales.",
+  "rompiendo el guion con una jugada de dos puntos muy bien ejecutada.",
+  "mandando un mensaje claro: este equipo viene a ganar, no a conformarse con uno.",
+  "con una conversión de dos puntos que mantiene la presión sobre la defensa rival.",
+  "decidiendo no ir por el punto extra tradicional y cobrando dos completos.",
+  "con una jugada diseñada específicamente para la conversión, ejecutada a la perfección.",
+  "mostrando confianza total en la ofensiva al buscar y conseguir dos puntos más.",
+  "sumando dos puntos que pueden marcar la diferencia en un cierre apretado.",
+  "con una conversión que hace explotar a la banca y a la afición.",
+  "aprovechando la confusión defensiva para convertir dos puntos más.",
+  "arriesgando en la zona roja y siendo recompensados con dos puntos adicionales.",
+  "con una jugada engaño que termina en conversión de dos puntos.",
+  "sumando dos puntos que amplían la ventaja en el momento justo."
+];
+
+  
   function extraContexto({ esOT, esRemontada, esCerrado, esPaliza }) {
     if (esOT)       return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
     if (esRemontada)return " Esta jugada completa una gran remontada que cambia la historia del partido.";
@@ -190,11 +209,12 @@
     const esPaliza    = diffNueva >= 20;
     const esOT        = quarter === "OT";
 
-    let pool = [];
-    if (tipoCorto === "TD")      pool = FRASES_TD;
-    else if (tipoCorto === "FG") pool = FRASES_FG;
-    else if (tipoCorto === "XP") pool = FRASES_XP;
-    else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
+   let pool = [];
+if (tipoCorto === "TD")          pool = FRASES_TD;
+else if (tipoCorto === "FG")     pool = FRASES_FG;
+else if (tipoCorto === "XP")     pool = FRASES_XP;
+else if (tipoCorto === "2PT")    pool = FRASES_2PT;
+else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
 
     const frase = pool[Math.floor(Math.random() * pool.length)] || "";
     const extra = extraContexto({ esOT, esRemontada, esCerrado, esPaliza });
@@ -299,12 +319,14 @@
       const oldHome = data.score_home || 0;
       const oldAway = data.score_away || 0;
 
-      let tipoCorto = "";
-      if (tipoLabel.includes("Touchdown"))      tipoCorto = "TD";
-      else if (tipoLabel.includes("Field Goal"))tipoCorto = "FG";
-      else if (tipoLabel.includes("Extra") ||
-               tipoLabel.includes("XP"))        tipoCorto = "XP";
-      else if (tipoLabel.includes("Safety"))    tipoCorto = "Safety";
+     let tipoCorto = "";
+if (tipoLabel.includes("Touchdown"))           tipoCorto = "TD";
+else if (tipoLabel.includes("Field Goal"))     tipoCorto = "FG";
+else if (tipoLabel.includes("2pt") ||
+         tipoLabel.includes("2pt Conversion")) tipoCorto = "2PT";
+else if (tipoLabel.includes("Extra") ||
+         tipoLabel.includes("XP"))             tipoCorto = "XP";
+else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
 
       const fraseCompleta = narrarJugada(
         { ...data, score_home: oldHome, score_away: oldAway },

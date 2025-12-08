@@ -12,9 +12,122 @@
 
   <style>
     body { background:#111; color:white; font-family:Arial, sans-serif; padding:20px; }
-    button, select, input { padding:10px; margin:5px; font-size:16px; }
-    .box { border:1px solid #444; padding:15px; margin:10px 0; border-radius:10px; }
-    h1, h2 { margin-top:0; }
+    button, select, input { padding:8px 10px; margin:4px; font-size:14px; }
+    h1 { margin-top:0; }
+
+    .box {
+      border:1px solid #333;
+      border-radius:10px;
+      margin:12px 0;
+      background:#181818;
+      overflow:hidden;
+    }
+    .box-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 14px;
+      background:#222;
+      cursor:pointer;
+    }
+    .box-header h2 {
+      margin:0;
+      font-size:17px;
+    }
+    .box-header span.toggle-icon {
+      font-size:16px;
+      transition:transform 0.2s ease;
+    }
+    .box-content {
+      padding:12px 14px 14px;
+    }
+    .box.collapsed .box-content {
+      display:none;
+    }
+    .box.collapsed .toggle-icon {
+      transform:rotate(-90deg);
+    }
+
+    .field-group {
+      margin-bottom:6px;
+      font-size:14px;
+    }
+    .field-group label {
+      display:inline-block;
+      min-width:80px;
+      font-size:13px;
+      opacity:0.9;
+    }
+    .field-group input, .field-group select {
+      min-width:160px;
+    }
+
+    .anot-grid {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .anot-col {
+      flex:1 1 220px;
+      padding:10px;
+      border-radius:8px;
+      background:#202020;
+    }
+    .anot-col h3 {
+      margin-top:0;
+      font-size:15px;
+      margin-bottom:6px;
+    }
+    .anot-col.home { border:1px solid #6ec9ff; }
+    .anot-col.away { border:1px solid #94b3ff; }
+
+    .qb-grid {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .qb-card {
+      flex:1 1 230px;
+      background:#202020;
+      border-radius:8px;
+      padding:10px;
+    }
+    .qb-card h3 {
+      margin-top:0;
+      font-size:15px;
+      margin-bottom:8px;
+    }
+    .qb-stats-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px 8px;
+      font-size:13px;
+      margin-bottom:3px;
+    }
+    .qb-stats-row label {
+      min-width:120px;
+    }
+    .qb-card button {
+      margin-top:6px;
+    }
+
+    /* Botones principales */
+    .danger-btn {
+      background:#b30000;
+      color:white;
+      border:none;
+      border-radius:6px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
+    .secondary-btn {
+      background:#444;
+      color:white;
+      border:none;
+      border-radius:6px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
 
     /* Logo pequeño en esquina */
     #ovt-corner-logo {
@@ -26,6 +139,10 @@
       pointer-events: none;
       z-index: 9999;
     }
+
+    @media (max-width:600px) {
+      button, select, input { font-size:13px; }
+    }
   </style>
 </head>
 
@@ -35,89 +152,227 @@
 
 <!-- EQUIPOS -->
 <div class="box">
-  <h2>Agregar Nuevo Equipo</h2>
-  Nombre <input id="new_team_name"><br>
-  Color <input id="new_team_color" type="color" value="#ff0000"><br>
-  <button onclick="addTeam()">Guardar Equipo</button>
+  <div class="box-header" onclick="toggleBox(this)">
+    <h2>Equipos</h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="box-content">
+    <div class="field-group">
+      <label for="new_team_name">Nombre</label>
+      <input id="new_team_name" />
+    </div>
+    <div class="field-group">
+      <label for="new_team_color">Color</label>
+      <input id="new_team_color" type="color" value="#ff0000" />
+    </div>
+    <button onclick="addTeam()">Guardar Equipo</button>
+  </div>
 </div>
 
 <!-- CONFIG PARTIDO -->
 <div class="box">
-  <h2>Configurar Partido</h2>
-
-  Equipo Local: <select id="team_home_select"></select><br>
-  Equipo Visitante: <select id="team_away_select"></select><br>
-
-  Fecha: <input id="date"><br>
-  Lugar: <input id="location"><br>
-
-  Cuarto:
-  <select id="quarter">
-    <option>1Q</option>
-    <option>2Q</option>
-    <option>MT</option> <!-- Medio tiempo -->
-    <option>3Q</option>
-    <option>4Q</option>
-    <option>OT</option>
-  </select>
-  <p style="font-size:14px;opacity:0.8;margin-top:5px;">
-    Secuencia permitida: 1Q → 2Q → MT → 3Q → 4Q → OT
-  </p>
+  <div class="box-header" onclick="toggleBox(this)">
+    <h2>Configurar Partido</h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="box-content">
+    <div class="field-group">
+      <label>Local</label>
+      <select id="team_home_select"></select>
+    </div>
+    <div class="field-group">
+      <label>Visitante</label>
+      <select id="team_away_select"></select>
+    </div>
+    <div class="field-group">
+      <label>Fecha</label>
+      <input id="date" />
+    </div>
+    <div class="field-group">
+      <label>Lugar</label>
+      <input id="location" />
+    </div>
+    <div class="field-group">
+      <label>Cuarto</label>
+      <select id="quarter">
+        <option>1Q</option>
+        <option>2Q</option>
+        <option>MT</option> <!-- Medio tiempo -->
+        <option>3Q</option>
+        <option>4Q</option>
+        <option>OT</option>
+      </select>
+    </div>
+    <p style="font-size:12px;opacity:0.8;">
+      Secuencia permitida: 1Q → 2Q → MT → 3Q → 4Q → OT
+    </p>
+  </div>
 </div>
 
 <!-- POSESIÓN -->
 <div class="box">
-  <h2>Posesión</h2>
-  <button onclick="setPossession('home')">Local</button>
-  <button onclick="setPossession('away')">Visitante</button>
+  <div class="box-header" onclick="toggleBox(this)">
+    <h2>Posesión</h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="box-content">
+    <button onclick="setPossession('home')">Local</button>
+    <button onclick="setPossession('away')">Visitante</button>
+  </div>
 </div>
 
 <!-- ANOTACIONES -->
 <div class="box">
-  <h2>Anotaciones</h2>
+  <div class="box-header" onclick="toggleBox(this)">
+    <h2>Anotaciones</h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="box-content">
+    <div class="anot-grid">
+      <div class="anot-col home">
+        <h3>Local</h3>
+        <button onclick="addPoints('home',6,'Touchdown','run')">TD Tierra +6</button>
+        <button onclick="addPoints('home',6,'Touchdown','pass')">TD Aire +6</button><br>
+        <button onclick="addPoints('home',1,'Extra Point')">XP +1</button>
+        <button onclick="addPoints('home',2,'2pt Conversion','run')">Conv. 2 pts (tierra)</button>
+        <button onclick="addPoints('home',2,'2pt Conversion','pass')">Conv. 2 pts (aire)</button><br>
+        <button onclick="addPoints('home',3,'Field Goal')">FG +3</button>
+        <button onclick="addPoints('home',2,'Safety')">Safety +2</button>
+      </div>
 
-  <!-- LOCAL -->
-  <button onclick="addPoints('home',6,'Touchdown','run')">TD Tierra Local +6</button>
-  <button onclick="addPoints('home',6,'Touchdown','pass')">TD Aire Local +6</button>
-  <button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
-  <button onclick="addPoints('home',2,'2pt Conversion','run')">Conv. 2 pts Local (tierra) +2</button>
-  <button onclick="addPoints('home',2,'2pt Conversion','pass')">Conv. 2 pts Local (aire) +2</button>
-  <button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
-  <button onclick="addPoints('home',2,'Safety')">Safety Local +2</button><br>
+      <div class="anot-col away">
+        <h3>Visitante</h3>
+        <button onclick="addPoints('away',6,'Touchdown','run')">TD Tierra +6</button>
+        <button onclick="addPoints('away',6,'Touchdown','pass')">TD Aire +6</button><br>
+        <button onclick="addPoints('away',1,'Extra Point')">XP +1</button>
+        <button onclick="addPoints('away',2,'2pt Conversion','run')">Conv. 2 pts (tierra)</button>
+        <button onclick="addPoints('away',2,'2pt Conversion','pass')">Conv. 2 pts (aire)</button><br>
+        <button onclick="addPoints('away',3,'Field Goal')">FG +3</button>
+        <button onclick="addPoints('away',2,'Safety')">Safety +2</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  <!-- VISITANTE -->
-  <button onclick="addPoints('away',6,'Touchdown','run')">TD Tierra Visitante +6</button>
-  <button onclick="addPoints('away',6,'Touchdown','pass')">TD Aire Visitante +6</button>
-  <button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
-  <button onclick="addPoints('away',2,'2pt Conversion','run')">Conv. 2 pts Visitante (tierra) +2</button>
-  <button onclick="addPoints('away',2,'2pt Conversion','pass')">Conv. 2 pts Visitante (aire) +2</button>
-  <button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
-  <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
+<!-- ESTADÍSTICAS QB -->
+<div class="box">
+  <div class="box-header" onclick="toggleBox(this)">
+    <h2>Estadísticas QB (partido actual)</h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="box-content">
+    <div class="qb-grid">
+      <!-- QB LOCAL -->
+      <div class="qb-card">
+        <h3>QB Local</h3>
+        <div class="field-group">
+          <label>Nombre</label>
+          <input id="qb_home_name" />
+        </div>
+        <div class="field-group">
+          <label>Posición</label>
+          <input id="qb_home_pos" value="QB" />
+        </div>
+        <div class="qb-stats-row">
+          <label>Yds pase</label>
+          <input id="qb_home_pass_yds" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>TD pase</label>
+          <input id="qb_home_pass_td" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>Intercepciones</label>
+          <input id="qb_home_int" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>Yds tierra</label>
+          <input id="qb_home_rush_yds" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>TD tierra</label>
+          <input id="qb_home_rush_td" type="number" value="0" />
+        </div>
+        <button onclick="saveQB('home')">Guardar QB Local</button>
+      </div>
+
+      <!-- QB VISITANTE -->
+      <div class="qb-card">
+        <h3>QB Visitante</h3>
+        <div class="field-group">
+          <label>Nombre</label>
+          <input id="qb_away_name" />
+        </div>
+        <div class="field-group">
+          <label>Posición</label>
+          <input id="qb_away_pos" value="QB" />
+        </div>
+        <div class="qb-stats-row">
+          <label>Yds pase</label>
+          <input id="qb_away_pass_yds" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>TD pase</label>
+          <input id="qb_away_pass_td" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>Intercepciones</label>
+          <input id="qb_away_int" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>Yds tierra</label>
+          <input id="qb_away_rush_yds" type="number" value="0" />
+        </div>
+        <div class="qb-stats-row">
+          <label>TD tierra</label>
+          <input id="qb_away_rush_td" type="number" value="0" />
+        </div>
+        <button onclick="saveQB('away')">Guardar QB Visitante</button>
+      </div>
+    </div>
+    <p style="font-size:12px;opacity:0.8;margin-top:6px;">
+      Más adelante podemos agregar más posiciones y estadísticas usando esta misma estructura.
+    </p>
+  </div>
 </div>
 
 <!-- ENCUESTA -->
 <div class="box">
-  <h2>Encuesta: ¿Quién ganará?</h2>
-  <button onclick="enablePoll(true)">Activar encuesta</button>
-  <button onclick="enablePoll(false)">Ocultar encuesta</button>
-  <div id="poll_summary" style="margin-top:10px; font-size:14px;"></div>
+  <div class="box-header" onclick="toggleBox(this)">
+    <h2>Encuesta: ¿Quién ganará?</h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="box-content">
+    <button onclick="enablePoll(true)">Activar encuesta</button>
+    <button onclick="enablePoll(false)">Ocultar encuesta</button>
+    <div id="poll_summary" style="margin-top:10px; font-size:14px;"></div>
+  </div>
 </div>
 
 <!-- FINAL / RESET -->
 <div class="box">
-  <button style="background:red;color:white;" onclick="finishGame()">Finalizar Partido</button>
-  <button style="background:#555;color:white;margin-left:10px;" onclick="resetGame()">Reset sin guardar</button>
+  <div class="box-header" onclick="toggleBox(this)">
+    <h2>Finalizar / Resetear</h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="box-content">
+    <button class="danger-btn" onclick="finishGame()">Finalizar Partido</button>
+    <button class="secondary-btn" onclick="resetGame()">Reset sin guardar</button>
+  </div>
 </div>
 
 <script>
-  // ================== FIREBASE ==================
   const refTeams = db.ref("teams");
   const refGame  = db.ref("game");
 
-  // Orden permitido de cuartos
   const QUARTER_ORDER = ["1Q", "2Q", "MT", "3Q", "4Q", "OT"];
 
-  // ================== FRASES ÉPICAS ==================
+  function toggleBox(headerEl) {
+    const box = headerEl.parentElement;
+    box.classList.toggle("collapsed");
+  }
+
+  // ===== FRASES EPICAS =====
   const FRASES_TD = [
     "tras una serie ofensiva perfecta que culmina en la zona de anotación.",
     "rematando una ofensiva larga que desgastó por completo a la defensa rival.",
@@ -145,380 +400,4 @@
     "con un gol de campo que mantiene viva la ofensiva.",
     "acortando la distancia con una patada bien ejecutada.",
     "castigando la defensa rival con tres puntos desde la larga distancia.",
-    "tras quedarse cortos en zona roja pero capitalizando con un FG.",
-    "asegurando puntos en una serie que parecía perderse.",
-    "con una patada que mantiene la presión sobre el rival.",
-    "sumando de a poco pero sin dejar de anotar.",
-    "que mantiene el juego dentro de una posesión.",
-    "con un gol de campo que silencía momentáneamente a la afición rival."
-  ];
-
-  const FRASES_XP = [
-    "convirtiendo sin problemas el punto extra.",
-    "asegurando el punto adicional para completar la serie.",
-    "sumando un punto más que redondea la anotación.",
-    "manteniendo la confianza en la unidad de gol de campo.",
-    "con una patada sencilla pero importante para el marcador.",
-    "completando los siete puntos tras el touchdown.",
-    "demostrando solidez en la ejecución del punto extra.",
-    "sin margen de error en el intento de XP.",
-    "sumando un punto que podría marcar diferencia al final.",
-    "cerrando la ofensiva con el adicional bueno.",
-    "mostrando seguridad total del pateador.",
-    "con un XP perfecto que no deja dudas.",
-    "añadiendo un punto más a la cuenta.",
-    "confirmando la ventaja obtenida con el touchdown.",
-    "redondeando una gran serie ofensiva."
-  ];
-
-  const FRASES_SAFETY = [
-    "gracias a una defensa implacable que encierra al rival en su propia zona.",
-    "aprovechando la presión defensiva para forzar el error en la zona de anotación.",
-    "con una jugada defensiva enorme que termina en safety.",
-    "demostrando un front defensivo dominante que no da respiro.",
-    "forzando al mariscal rival a cometer un error costoso en su propia zona.",
-    "haciendo sentir el peso de la defensiva y sumando dos puntos importantes.",
-    "castigando a la ofensiva rival con una jugada espectacular detrás de la línea.",
-    "con un safety que cambia la inercia del partido.",
-    "demostrando que la defensa también puede poner puntos en el marcador.",
-    "aprovechando una mala protección para encerrar al corredor.",
-    "haciendo retroceder tanto a la ofensiva rival que terminan dentro de su propia zona.",
-    "con una lectura perfecta de la jugada ofensiva para conseguir el safety.",
-    "sumando dos puntos defensivos que levantan al equipo.",
-    "dejando claro que no hay espacio para errores cerca de la propia zona.",
-    "con una jugada defensiva que prende fuego a la banca y a la afición."
-  ];
-
-  const FRASES_2PT = [
-    "arriesgando con una conversión de dos puntos que sale perfecta.",
-    "demostrando agresividad ofensiva al ir por dos y conseguirlo.",
-    "aprovechando el momento para sumar dos puntos extra fundamentales.",
-    "rompiendo el guion con una jugada de dos puntos muy bien ejecutada.",
-    "mandando un mensaje claro: este equipo viene a ganar, no a conformarse con uno.",
-    "con una conversión de dos puntos que mantiene la presión sobre la defensa rival.",
-    "decidiendo no ir por el punto extra tradicional y cobrando dos completos.",
-    "con una jugada diseñada específicamente para la conversión, ejecutada a la perfección.",
-    "mostrando confianza total en la ofensiva al buscar y conseguir dos puntos más.",
-    "sumando dos puntos que pueden marcar la diferencia en un cierre apretado.",
-    "con una conversión que hace explotar a la banca y a la afición.",
-    "aprovechando la confusión defensiva para convertir dos puntos más.",
-    "arriesgando en la zona roja y siendo recompensados con dos puntos adicionales.",
-    "con una jugada engaño que termina en conversión de dos puntos.",
-    "sumando dos puntos que amplían la ventaja en el momento justo."
-  ];
-
-  // ================== CONTEXTO EXTRA ==================
-  function extraContexto({ esOT, esRemontada, esCerrado, esPaliza }) {
-    if (esOT)       return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
-    if (esRemontada)return " Esta jugada completa una gran remontada que cambia la historia del partido.";
-    if (esCerrado)  return " El marcador sigue muy cerrado y cada punto pesa muchísimo.";
-    if (esPaliza)   return " La ventaja sigue creciendo y el dominio es cada vez más claro.";
-    return "";
-  }
-
-  // ================== NARRADOR ==================
-  function narrarJugada(data, teamSide, pts, tipoCorto, modo) {
-    const quarter      = data.quarter || "";
-    const nombreEquipo = teamSide === "home" ? data.team_home : data.team_away;
-
-    const oldHome = data.score_home || 0;
-    const oldAway = data.score_away || 0;
-
-    const newHome = teamSide === "home" ? oldHome + pts : oldHome;
-    const newAway = teamSide === "away" ? oldAway + pts : oldAway;
-
-    // texto extra según modo (solo TD / 2PT)
-    let via = "";
-    if (tipoCorto === "TD" || tipoCorto === "2PT") {
-      if (modo === "run")  via = " por tierra";
-      if (modo === "pass") via = " por aire";
-    }
-
-    const accionBase = `${quarter} • ${tipoCorto} de ${nombreEquipo}${via} (${pts} pts)`;
-
-    const diffNueva = Math.abs(newHome - newAway);
-
-    const ibaPerdiendo =
-      (teamSide === "home" && oldHome < oldAway) ||
-      (teamSide === "away" && oldAway < oldHome);
-
-    const ahoraVaGanando =
-      (teamSide === "home" && newHome > newAway) ||
-      (teamSide === "away" && newAway > newHome);
-
-    const esRemontada = ibaPerdiendo && ahoraVaGanando;
-    const esCerrado   = diffNueva <= 3;
-    const esPaliza    = diffNueva >= 20;
-    const esOT        = quarter === "OT";
-
-    let pool = [];
-    if (tipoCorto === "TD")          pool = FRASES_TD;
-    else if (tipoCorto === "FG")     pool = FRASES_FG;
-    else if (tipoCorto === "XP")     pool = FRASES_XP;
-    else if (tipoCorto === "2PT")    pool = FRASES_2PT;
-    else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
-
-    const frase = pool[Math.floor(Math.random() * pool.length)] || "";
-    const extra = extraContexto({ esOT, esRemontada, esCerrado, esPaliza });
-
-    return `${accionBase} ${frase}${extra}`.trim();
-  }
-
-  // ================== LÓGICA DEL PANEL ==================
-
-  function addTeam() {
-    const name  = document.getElementById("new_team_name").value.trim();
-    const color = document.getElementById("new_team_color").value;
-
-    if (!name) {
-      alert("Escribe un nombre primero");
-      return;
-    }
-
-    refTeams.child(name).set({ color })
-      .then(() => {
-        alert("Equipo guardado");
-        document.getElementById("new_team_name").value = "";
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Error al guardar el equipo");
-      });
-  }
-
-  // llenar selects de equipos
-  refTeams.on("value", snap => {
-    const teams = snap.val() || {};
-    const homeSel = document.getElementById("team_home_select");
-    const awaySel = document.getElementById("team_away_select");
-    homeSel.innerHTML = "";
-    awaySel.innerHTML = "";
-    for (const t in teams) {
-      homeSel.innerHTML += `<option>${t}</option>`;
-      awaySel.innerHTML += `<option>${t}</option>`;
-    }
-  });
-
-  // Control de cuartos con secuencia
-  let lastQuarter = null;
-
-  setInterval(() => {
-    const qSel   = document.getElementById("quarter").value || "1Q";
-    const home   = document.getElementById("team_home_select").value || "";
-    const away   = document.getElementById("team_away_select").value || "";
-    const date   = document.getElementById("date").value || "";
-    const place  = document.getElementById("location").value || "";
-
-    if (lastQuarter === null) {
-      lastQuarter = qSel;
-    } else if (qSel !== lastQuarter) {
-      const idxOld = QUARTER_ORDER.indexOf(lastQuarter);
-      const idxNew = QUARTER_ORDER.indexOf(qSel);
-
-      if (idxNew !== idxOld + 1) {
-        document.getElementById("quarter").value = lastQuarter;
-        alert("Secuencia inválida de cuartos. El orden permitido es 1Q → 2Q → MT → 3Q → 4Q → OT.");
-        return;
-      }
-
-      refGame.once("value").then(snap => {
-        const data = snap.val() || {};
-        const tl = data.timeline || [];
-
-        let msg = "";
-        if (qSel === "MT") {
-          msg = `Termina el ${lastQuarter}. Entramos a medio tiempo.`;
-        } else if (lastQuarter === "MT") {
-          msg = `Termina el medio tiempo, comienza el ${qSel}.`;
-        } else {
-          msg = `Se termina el ${lastQuarter}. Comienza el ${qSel}.`;
-        }
-
-        const nuevoTL = [...tl, msg];
-
-        refGame.update({
-          team_home: home,
-          team_away: away,
-          date:      date,
-          location:  place,
-          quarter:   qSel,
-          timeline:  nuevoTL
-        });
-
-        lastQuarter = qSel;
-      });
-
-      return;
-    }
-
-    // actualización normal sin cambio de cuarto
-    refGame.update({
-      team_home: home,
-      team_away: away,
-      date:      date,
-      location:  place,
-      quarter:   qSel
-    });
-  }, 1500);
-
-  function setPossession(team) {
-    refGame.update({ possession: team });
-  }
-
-  function addPoints(teamSide, pts, tipoLabel, modo) {
-    refGame.once("value").then(snap => {
-      const data = snap.val() || {};
-
-      const oldHome = data.score_home || 0;
-      const oldAway = data.score_away || 0;
-
-      let tipoCorto = "";
-      if (tipoLabel.includes("Touchdown"))           tipoCorto = "TD";
-      else if (tipoLabel.includes("Field Goal"))     tipoCorto = "FG";
-      else if (tipoLabel.includes("2pt"))            tipoCorto = "2PT";
-      else if (tipoLabel.includes("Extra") ||
-               tipoLabel.includes("XP"))             tipoCorto = "XP";
-      else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
-
-      const fraseCompleta = narrarJugada(
-        { ...data, score_home: oldHome, score_away: oldAway },
-        teamSide,
-        pts,
-        tipoCorto,
-        modo
-      );
-
-      const timelineActual = data.timeline || [];
-      const nuevoTimeline  = [...timelineActual, fraseCompleta];
-
-      const newHome = teamSide === "home" ? oldHome + pts : oldHome;
-      const newAway = teamSide === "away" ? oldAway + pts : oldAway;
-
-      refGame.update({
-        score_home: newHome,
-        score_away: newAway,
-        timeline:   nuevoTimeline
-      });
-    });
-  }
-
-  function finishGame() {
-    refGame.once("value").then(snap => {
-      const data = snap.val() || {};
-
-      const homeName = data.team_home || "Local";
-      const awayName = data.team_away || "Visitante";
-      const home     = data.score_home || 0;
-      const away     = data.score_away || 0;
-
-      const tl = data.timeline || [];
-      const finalMsg = `FINAL • El partido termina con marcador ${homeName} ${home} - ${away} ${awayName}.`;
-
-      const timestamp = Date.now();
-      const historyRef = db.ref("history").child(timestamp.toString());
-
-      const historyData = {
-        ...data,
-        finished: true,
-        timeline: [...tl, finalMsg],
-        finishedAt: timestamp
-      };
-
-      historyRef.set(historyData).then(() => {
-        return refGame.set({
-          team_home: "",
-          team_away: "",
-          date: "",
-          location: "",
-          quarter: "1Q",
-          score_home: 0,
-          score_away: 0,
-          possession: null,
-          timeline: [],
-          pollEnabled: false,
-          pollVotes: null
-        });
-      }).then(() => {
-        document.getElementById("team_home_select").value = "";
-        document.getElementById("team_away_select").value = "";
-        document.getElementById("date").value = "";
-        document.getElementById("location").value = "";
-        document.getElementById("quarter").value = "1Q";
-        lastQuarter = "1Q";
-        alert("Partido finalizado, guardado en historial y marcador reiniciado.");
-      }).catch(err => {
-        console.error(err);
-        alert("Ocurrió un error al finalizar el partido.");
-      });
-    });
-  }
-
-  function resetGame() {
-    if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
-
-    refGame.set({
-      team_home: "",
-      team_away: "",
-      date: "",
-      location: "",
-      quarter: "1Q",
-      score_home: 0,
-      score_away: 0,
-      possession: null,
-      timeline: [],
-      pollEnabled: false,
-      pollVotes: null
-    }).then(() => {
-      document.getElementById("team_home_select").value = "";
-      document.getElementById("team_away_select").value = "";
-      document.getElementById("date").value = "";
-      document.getElementById("location").value = "";
-      document.getElementById("quarter").value = "1Q";
-      lastQuarter = "1Q";
-      alert("Marcador reseteado.");
-    }).catch(err => {
-      console.error(err);
-      alert("No se pudo resetear el marcador.");
-    });
-  }
-
-  function enablePoll(active) {
-    refGame.update({ pollEnabled: !!active });
-  }
-
-  // Resumen de votos en admin
-  refGame.on("value", snap => {
-    const data = snap.val() || {};
-    const votes = data.pollVotes || {};
-    const summaryEl = document.getElementById("poll_summary");
-    if (!summaryEl) return;
-
-    let homeCount = 0;
-    let awayCount = 0;
-
-    for (const id in votes) {
-      const v = votes[id];
-      if (v.team === "home") homeCount++;
-      else if (v.team === "away") awayCount++;
-    }
-
-    const total   = homeCount + awayCount;
-    const homePct = total ? Math.round((homeCount / total) * 100) : 0;
-    const awayPct = total ? Math.round((awayCount / total) * 100) : 0;
-
-    summaryEl.innerHTML = `
-      <p>Encuesta: <strong>${data.pollEnabled ? "ACTIVA" : "INACTIVA"}</strong></p>
-      <p>${data.team_home || "Local"}: ${homeCount} voto(s) (${homePct}%)</p>
-      <p>${data.team_away || "Visitante"}: ${awayCount} voto(s) (${awayPct}%)</p>
-      <p>Total: ${total} voto(s)</p>
-    `;
-  });
-</script>
-
-<!-- Logo OVT en esquina -->
-<img id="ovt-corner-logo"
-     src="https://raw.githubusercontent.com/osvillat-alt/Scoreboard/main/bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png"
-     alt="OVT Logo">
-
-</body>
-</html>
+    "tras quedarse cortos en zona ro

@@ -12,62 +12,85 @@
 
   <style>
     body { background:#000; color:white; font-family:Arial, sans-serif; margin:0; padding:0; }
-    .container { max-width:1000px; margin:0 auto; padding:20px; }
+    .container { max-width:1000px; margin:0 auto; padding:16px; }
+
+    .tabs {
+      display:flex;
+      border-bottom:1px solid #333;
+      margin-bottom:10px;
+    }
+    .tab-btn {
+      flex:1;
+      padding:10px;
+      text-align:center;
+      cursor:pointer;
+      font-size:15px;
+      border:none;
+      background:#111;
+      color:#ccc;
+    }
+    .tab-btn.active {
+      background:#222;
+      color:#fff;
+      border-bottom:2px solid #ffc800;
+    }
 
     .top-info {
       text-align:center;
-      font-size:18px;
-      margin-bottom:10px;
-      border-bottom:2px solid #ffc800;
-      padding-bottom:8px;
+      font-size:16px;
+      margin-bottom:8px;
+      border-bottom:1px solid #444;
+      padding-bottom:6px;
     }
 
     .score-row {
       display:flex;
       justify-content:space-between;
       align-items:center;
-      margin:20px 0;
+      margin:16px 0;
+      gap:10px;
     }
 
     .team-box {
       flex:1;
       text-align:center;
-      padding:15px 10px;
+      padding:12px 8px;
       border-radius:10px;
-      font-size:22px;
+      font-size:18px;
       font-weight:bold;
     }
 
-    .team-home { background:#6ec9ff; color:#000; margin-right:10px; }
-    .team-away { background:#001d9b; margin-left:10px; }
+    .team-home { background:#6ec9ff; color:#000; }
+    .team-away { background:#001d9b; }
 
     .score-middle {
-      font-size:40px;
-      min-width:140px;
+      font-size:32px;
+      min-width:120px;
       text-align:center;
     }
 
     .possession-chip {
       display:inline-block;
-      margin-top:8px;
-      font-size:14px;
-      padding:4px 10px;
+      margin-top:6px;
+      font-size:12px;
+      padding:3px 9px;
       border-radius:20px;
       border:1px solid #fff;
     }
 
-    .quarter-text { text-align:center; font-size:22px; margin-bottom:20px; }
+    .quarter-text { text-align:center; font-size:18px; margin-bottom:14px; }
 
     .timeline-box {
       border-radius:8px;
       background:#111;
-      padding:15px;
+      padding:12px;
+      margin-top:10px;
     }
-    .timeline-box h2 { margin-top:0; }
+    .timeline-box h2 { margin-top:0; font-size:17px; }
     .timeline-item {
       border-bottom:1px solid #333;
-      padding:6px 4px;
-      font-size:14px;
+      padding:5px 3px;
+      font-size:13px;
     }
     .timeline-item:last-child { border-bottom:none; }
 
@@ -107,85 +130,186 @@
     .poll-bar-away { background:#94b3ff; }
 
     #poll_section h2 { margin-bottom:5px; }
+
+    /* Stats tab */
+    .stats-container {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+    }
+    .qb-card {
+      flex:1 1 220px;
+      background:#111;
+      border-radius:10px;
+      padding:12px;
+    }
+    .qb-card h3 {
+      margin-top:0;
+      font-size:16px;
+      margin-bottom:4px;
+    }
+    .qb-meta {
+      font-size:13px;
+      opacity:0.9;
+      margin-bottom:6px;
+    }
+    .qb-stats-list {
+      list-style:none;
+      padding-left:0;
+      margin:0;
+      font-size:13px;
+    }
+    .qb-stats-list li {
+      margin-bottom:3px;
+    }
+
+    /* Logo pequeño en esquina */
+    #ovt-corner-logo {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      opacity: 0.75;
+      width: 80px;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    @media (max-width:600px) {
+      .score-row {
+        flex-direction:column;
+      }
+      .team-box {
+        width:100%;
+      }
+      .score-middle {
+        order:-1;
+      }
+    }
   </style>
 </head>
+
+<body>
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-score">Marcador</button>
+    <button class="tab-btn" data-tab="tab-stats">Estadísticas</button>
+  </div>
+
+  <!-- INFO SUPERIOR -->
+  <div class="top-info" id="top_info">Lugar • Fecha</div>
+
+  <!-- TAB MARCADOR -->
+  <div id="tab-score">
+    <!-- MARCADOR -->
+    <div class="score-row">
+      <div class="team-box team-home">
+        <div id="home_name">Local</div>
+        <div id="home_possession" class="possession-chip" style="visibility:hidden;">Posesión</div>
+      </div>
+
+      <div class="score-middle">
+        <span id="score_home">0</span>
+        <span> - </span>
+        <span id="score_away">0</span>
+      </div>
+
+      <div class="team-box team-away">
+        <div id="away_name">Visitante</div>
+        <div id="away_possession" class="possession-chip" style="visibility:hidden;">Posesión</div>
+      </div>
+    </div>
+
+    <!-- CUARTO -->
+    <div class="quarter-text" id="quarter_text">Cuarto: 1Q</div>
+
+    <!-- ENCUESTA -->
+    <div id="poll_section" style="display:none; margin-top:10px;">
+      <h2 style="text-align:center;">Encuesta: ¿Quién ganará?</h2>
+      <p id="poll_question" style="text-align:center; margin-bottom:10px;"></p>
+
+      <div class="poll-bars">
+        <div class="poll-bar">
+          <div class="poll-bar-header">
+            <span id="poll_home_name">Local</span>
+            <span id="poll_home_pct">0%</span>
+          </div>
+          <div class="poll-bar-track">
+            <div id="poll_home_fill" class="poll-bar-fill poll-bar-home"></div>
+          </div>
+        </div>
+
+        <div class="poll-bar">
+          <div class="poll-bar-header">
+            <span id="poll_away_name">Visitante</span>
+            <span id="poll_away_pct">0%</span>
+          </div>
+          <div class="poll-bar-track">
+            <div id="poll_away_fill" class="poll-bar-fill poll-bar-away"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="poll_buttons" style="text-align:center; margin-top:12px;">
+        <button id="vote_home_btn" style="padding:8px 14px; margin:4px;">Votar Local</button>
+        <button id="vote_away_btn" style="padding:8px 14px; margin:4px;">Votar Visitante</button>
+      </div>
+
+      <p id="poll_status" style="text-align:center; font-size:13px; opacity:0.85; margin-top:6px;"></p>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline-box">
+      <h2>Crónica del partido</h2>
+      <div id="timeline_list"></div>
+    </div>
+  </div>
+
+  <!-- TAB ESTADÍSTICAS -->
+  <div id="tab-stats" style="display:none;">
+    <h2 style="font-size:17px; margin-top:8px;">Estadísticas del partido</h2>
+    <p style="font-size:13px; opacity:0.9; margin-bottom:8px;">
+      Por ahora mostramos las estadísticas del mariscal de campo (QB) de cada equipo. Más adelante se pueden agregar más posiciones.
+    </p>
+    <div class="stats-container">
+      <div class="qb-card">
+        <h3 id="qb_home_team_label">QB Local</h3>
+        <div class="qb-meta" id="qb_home_meta">Nombre: –</div>
+        <ul class="qb-stats-list">
+          <li id="qb_home_pass_yds_text">Yds pase: 0</li>
+          <li id="qb_home_pass_td_text">TD pase: 0</li>
+          <li id="qb_home_int_text">Intercepciones: 0</li>
+          <li id="qb_home_rush_yds_text">Yds tierra: 0</li>
+          <li id="qb_home_rush_td_text">TD tierra: 0</li>
+        </ul>
+      </div>
+
+      <div class="qb-card">
+        <h3 id="qb_away_team_label">QB Visitante</h3>
+        <div class="qb-meta" id="qb_away_meta">Nombre: –</div>
+        <ul class="qb-stats-list">
+          <li id="qb_away_pass_yds_text">Yds pase: 0</li>
+          <li id="qb_away_pass_td_text">TD pase: 0</li>
+          <li id="qb_away_int_text">Intercepciones: 0</li>
+          <li id="qb_away_rush_yds_text">Yds tierra: 0</li>
+          <li id="qb_away_rush_td_text">TD tierra: 0</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logo OVT -->
 <img id="ovt-corner-logo"
      src="https://raw.githubusercontent.com/osvillat-alt/Scoreboard/main/bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png"
      alt="OVT Logo">
 
-<body>
-<div class="container">
-  <!-- INFO SUPERIOR -->
-  <div class="top-info" id="top_info">Lugar • Fecha</div>
-
-  <!-- MARCADOR -->
-  <div class="score-row">
-    <div class="team-box team-home">
-      <div id="home_name">Local</div>
-      <div id="home_possession" class="possession-chip" style="visibility:hidden;">Posesión</div>
-    </div>
-
-    <div class="score-middle">
-      <span id="score_home">0</span>
-      <span> - </span>
-      <span id="score_away">0</span>
-    </div>
-
-    <div class="team-box team-away">
-      <div id="away_name">Visitante</div>
-      <div id="away_possession" class="possession-chip" style="visibility:hidden;">Posesión</div>
-    </div>
-  </div>
-
-  <!-- CUARTO -->
-  <div class="quarter-text" id="quarter_text">Cuarto: 1Q</div>
-
-  <!-- ENCUESTA -->
-  <div id="poll_section" style="display:none; margin-top:25px;">
-    <h2 style="text-align:center;">Encuesta: ¿Quién ganará?</h2>
-    <p id="poll_question" style="text-align:center; margin-bottom:10px;"></p>
-
-    <div class="poll-bars">
-      <div class="poll-bar">
-        <div class="poll-bar-header">
-          <span id="poll_home_name">Local</span>
-          <span id="poll_home_pct">0%</span>
-        </div>
-        <div class="poll-bar-track">
-          <div id="poll_home_fill" class="poll-bar-fill poll-bar-home"></div>
-        </div>
-      </div>
-
-      <div class="poll-bar">
-        <div class="poll-bar-header">
-          <span id="poll_away_name">Visitante</span>
-          <span id="poll_away_pct">0%</span>
-        </div>
-        <div class="poll-bar-track">
-          <div id="poll_away_fill" class="poll-bar-fill poll-bar-away"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="poll_buttons" style="text-align:center; margin-top:12px;">
-      <button id="vote_home_btn" style="padding:8px 14px; margin:4px;">Votar Local</button>
-      <button id="vote_away_btn" style="padding:8px 14px; margin:4px;">Votar Visitante</button>
-    </div>
-
-    <p id="poll_status" style="text-align:center; font-size:13px; opacity:0.85; margin-top:6px;"></p>
-  </div>
-
-  <!-- TIMELINE -->
-  <div class="timeline-box" style="margin-top:25px;">
-    <h2>Crónica del partido</h2>
-    <div id="timeline_list"></div>
-  </div>
-</div>
-
 <script>
   const refGame = db.ref("game");
 
-  // ID de dispositivo (para limitar 1 voto por device)
+  // ID de dispositivo para limitar un voto
   const DEVICE_ID = (function () {
     let id = localStorage.getItem("scoreboardDeviceId");
     if (!id) {
@@ -194,6 +318,27 @@
     }
     return id;
   })();
+
+  // Tabs
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabScore   = document.getElementById("tab-score");
+  const tabStats   = document.getElementById("tab-stats");
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const target = btn.getAttribute("data-tab");
+      if (target === "tab-score") {
+        tabScore.style.display = "block";
+        tabStats.style.display = "none";
+      } else {
+        tabScore.style.display = "none";
+        tabStats.style.display = "block";
+      }
+    });
+  });
 
   function vote(teamSide) {
     refGame.child("pollVotes").child(DEVICE_ID).get().then(snap => {
@@ -222,7 +367,6 @@
   refGame.on("value", snap => {
     const data = snap.val() || {};
 
-    // Equipos, marcador, lugar/fecha
     const homeName = data.team_home || "Local";
     const awayName = data.team_away || "Visitante";
 
@@ -236,14 +380,12 @@
     document.getElementById("top_info").innerText =
       (place ? place : "") + (place && date ? " • " : "") + (date ? date : "");
 
-    // posesión
     const poss = data.possession || null;
     document.getElementById("home_possession").style.visibility =
       poss === "home" ? "visible" : "hidden";
     document.getElementById("away_possession").style.visibility =
       poss === "away" ? "visible" : "hidden";
 
-    // cuarto
     let qText = data.quarter || "1Q";
     if (qText === "MT") {
       document.getElementById("quarter_text").innerText = "Medio tiempo";
@@ -251,11 +393,9 @@
       document.getElementById("quarter_text").innerText = "Cuarto: " + qText;
     }
 
-    // timeline
     const tl = data.timeline || [];
     const tlList = document.getElementById("timeline_list");
     tlList.innerHTML = "";
-    // mostramos del más antiguo al más reciente
     tl.forEach(item => {
       const div = document.createElement("div");
       div.className = "timeline-item";
@@ -263,7 +403,7 @@
       tlList.appendChild(div);
     });
 
-    // ========== ENCUESTA ==========
+    // ENCUESTA
     const pollSection  = document.getElementById("poll_section");
     const pollQuestion = document.getElementById("poll_question");
     const homeNameEl   = document.getElementById("poll_home_name");
@@ -311,6 +451,56 @@
       }
     } else {
       pollSection.style.display = "none";
+    }
+
+    // ESTADÍSTICAS QB
+    const players = data.players || {};
+    const homeQB  = players.home && players.home.qb ? players.home.qb : null;
+    const awayQB  = players.away && players.away.qb ? players.away.qb : null;
+
+    document.getElementById("qb_home_team_label").innerText = homeName + " - QB";
+    document.getElementById("qb_away_team_label").innerText = awayName + " - QB";
+
+    if (homeQB) {
+      const metaText =
+        "Nombre: " + (homeQB.name || "–") +
+        (homeQB.position ? " • Posición: " + homeQB.position : "");
+      document.getElementById("qb_home_meta").innerText = metaText;
+
+      const s = homeQB.stats || {};
+      document.getElementById("qb_home_pass_yds_text").innerText = "Yds pase: " + (s.pass_yds ?? 0);
+      document.getElementById("qb_home_pass_td_text").innerText  = "TD pase: " + (s.pass_td ?? 0);
+      document.getElementById("qb_home_int_text").innerText      = "Intercepciones: " + (s.ints ?? 0);
+      document.getElementById("qb_home_rush_yds_text").innerText = "Yds tierra: " + (s.rush_yds ?? 0);
+      document.getElementById("qb_home_rush_td_text").innerText  = "TD tierra: " + (s.rush_td ?? 0);
+    } else {
+      document.getElementById("qb_home_meta").innerText = "Nombre: –";
+      document.getElementById("qb_home_pass_yds_text").innerText = "Yds pase: 0";
+      document.getElementById("qb_home_pass_td_text").innerText  = "TD pase: 0";
+      document.getElementById("qb_home_int_text").innerText      = "Intercepciones: 0";
+      document.getElementById("qb_home_rush_yds_text").innerText = "Yds tierra: 0";
+      document.getElementById("qb_home_rush_td_text").innerText  = "TD tierra: 0";
+    }
+
+    if (awayQB) {
+      const metaText =
+        "Nombre: " + (awayQB.name || "–") +
+        (awayQB.position ? " • Posición: " + awayQB.position : "");
+      document.getElementById("qb_away_meta").innerText = metaText;
+
+      const s = awayQB.stats || {};
+      document.getElementById("qb_away_pass_yds_text").innerText = "Yds pase: " + (s.pass_yds ?? 0);
+      document.getElementById("qb_away_pass_td_text").innerText  = "TD pase: " + (s.pass_td ?? 0);
+      document.getElementById("qb_away_int_text").innerText      = "Intercepciones: " + (s.ints ?? 0);
+      document.getElementById("qb_away_rush_yds_text").innerText = "Yds tierra: " + (s.rush_yds ?? 0);
+      document.getElementById("qb_away_rush_td_text").innerText  = "TD tierra: " + (s.rush_td ?? 0);
+    } else {
+      document.getElementById("qb_away_meta").innerText = "Nombre: –";
+      document.getElementById("qb_away_pass_yds_text").innerText = "Yds pase: 0";
+      document.getElementById("qb_away_pass_td_text").innerText  = "TD pase: 0";
+      document.getElementById("qb_away_int_text").innerText      = "Intercepciones: 0";
+      document.getElementById("qb_away_rush_yds_text").innerText = "Yds tierra: 0";
+      document.getElementById("qb_away_rush_td_text").innerText  = "TD tierra: 0";
     }
   });
 </script>

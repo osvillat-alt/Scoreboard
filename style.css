@@ -127,4 +127,14 @@ body {
   .timeline-item {
     font-size: 14px;
   }
+ 
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    opacity: 0.75; 
+    width: 80px;  
+    pointer-events: none; 
+    z-index: 9999;
+}
+
 }

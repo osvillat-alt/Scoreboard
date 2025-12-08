@@ -131,22 +131,18 @@
 
     #poll_section h2 { margin-bottom:5px; }
 
-    /* Stats tab */
+    /* Stats tab: solo QB de Cyclones Navy */
     .stats-container {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
       margin-top:10px;
     }
     .qb-card {
-      flex:1 1 220px;
       background:#111;
       border-radius:10px;
       padding:12px;
     }
-    .qb-card h3 {
+    .qb-card h2 {
       margin-top:0;
-      font-size:16px;
+      font-size:18px;
       margin-bottom:4px;
     }
     .qb-meta {
@@ -267,34 +263,22 @@
     </div>
   </div>
 
-  <!-- TAB ESTADÍSTICAS -->
+  <!-- TAB ESTADÍSTICAS: sólo QB de Cyclones Navy -->
   <div id="tab-stats" style="display:none;">
-    <h2 style="font-size:17px; margin-top:8px;">Estadísticas del partido</h2>
+    <h2 style="font-size:17px; margin-top:8px;">Estadísticas del QB de Cyclones Navy</h2>
     <p style="font-size:13px; opacity:0.9; margin-bottom:8px;">
-      Por ahora mostramos las estadísticas del mariscal de campo (QB) de cada equipo. Más adelante se pueden agregar más posiciones.
+      Estas estadísticas corresponden solo al mariscal de campo de Cyclones Navy en el partido actual.
     </p>
     <div class="stats-container">
       <div class="qb-card">
-        <h3 id="qb_home_team_label">QB Local</h3>
-        <div class="qb-meta" id="qb_home_meta">Nombre: –</div>
+        <h2 id="qb_cyclones_title">Cyclones Navy - QB</h2>
+        <div class="qb-meta" id="qb_cyclones_meta">Nombre: –</div>
         <ul class="qb-stats-list">
-          <li id="qb_home_pass_yds_text">Yds pase: 0</li>
-          <li id="qb_home_pass_td_text">TD pase: 0</li>
-          <li id="qb_home_int_text">Intercepciones: 0</li>
-          <li id="qb_home_rush_yds_text">Yds tierra: 0</li>
-          <li id="qb_home_rush_td_text">TD tierra: 0</li>
-        </ul>
-      </div>
-
-      <div class="qb-card">
-        <h3 id="qb_away_team_label">QB Visitante</h3>
-        <div class="qb-meta" id="qb_away_meta">Nombre: –</div>
-        <ul class="qb-stats-list">
-          <li id="qb_away_pass_yds_text">Yds pase: 0</li>
-          <li id="qb_away_pass_td_text">TD pase: 0</li>
-          <li id="qb_away_int_text">Intercepciones: 0</li>
-          <li id="qb_away_rush_yds_text">Yds tierra: 0</li>
-          <li id="qb_away_rush_td_text">TD tierra: 0</li>
+          <li id="qb_cyclones_pass_yds">Yds pase: 0</li>
+          <li id="qb_cyclones_pass_td">TD pase: 0</li>
+          <li id="qb_cyclones_int">Intercepciones: 0</li>
+          <li id="qb_cyclones_rush_yds">Yds tierra: 0</li>
+          <li id="qb_cyclones_rush_td">TD tierra: 0</li>
         </ul>
       </div>
     </div>
@@ -308,6 +292,9 @@
 
 <script>
   const refGame = db.ref("game");
+
+  // Nombre del equipo que queremos trackear
+  const TRACKED_TEAM = "Cyclones Navy";
 
   // ID de dispositivo para limitar un voto
   const DEVICE_ID = (function () {
@@ -370,6 +357,7 @@
     const homeName = data.team_home || "Local";
     const awayName = data.team_away || "Visitante";
 
+    // MARCADOR
     document.getElementById("home_name").innerText  = homeName;
     document.getElementById("away_name").innerText  = awayName;
     document.getElementById("score_home").innerText = data.score_home || 0;
@@ -393,6 +381,7 @@
       document.getElementById("quarter_text").innerText = "Cuarto: " + qText;
     }
 
+    // TIMELINE
     const tl = data.timeline || [];
     const tlList = document.getElementById("timeline_list");
     tlList.innerHTML = "";
@@ -453,54 +442,52 @@
       pollSection.style.display = "none";
     }
 
-    // ESTADÍSTICAS QB
+    // ========= ESTADÍSTICAS QB: SOLO CYCLOVES NAVY =========
     const players = data.players || {};
     const homeQB  = players.home && players.home.qb ? players.home.qb : null;
     const awayQB  = players.away && players.away.qb ? players.away.qb : null;
 
-    document.getElementById("qb_home_team_label").innerText = homeName + " - QB";
-    document.getElementById("qb_away_team_label").innerText = awayName + " - QB";
+    let qbCyclones = null;
 
-    /*if (homeQB) {
-      const metaText =
-        "Nombre: " + (homeQB.name || "–") +
-        (homeQB.position ? " • Posición: " + homeQB.position : "");
-      document.getElementById("qb_home_meta").innerText = metaText;
-
-      const s = homeQB.stats || {};
-      document.getElementById("qb_home_pass_yds_text").innerText = "Yds pase: " + (s.pass_yds ?? 0);
-      document.getElementById("qb_home_pass_td_text").innerText  = "TD pase: " + (s.pass_td ?? 0);
-      document.getElementById("qb_home_int_text").innerText      = "Intercepciones: " + (s.ints ?? 0);
-      document.getElementById("qb_home_rush_yds_text").innerText = "Yds tierra: " + (s.rush_yds ?? 0);
-      document.getElementById("qb_home_rush_td_text").innerText  = "TD tierra: " + (s.rush_td ?? 0);
-    } else {
-      document.getElementById("qb_home_meta").innerText = "Nombre: –";
-      document.getElementById("qb_home_pass_yds_text").innerText = "Yds pase: 0";
-      document.getElementById("qb_home_pass_td_text").innerText  = "TD pase: 0";
-      document.getElementById("qb_home_int_text").innerText      = "Intercepciones: 0";
-      document.getElementById("qb_home_rush_yds_text").innerText = "Yds tierra: 0";
-      document.getElementById("qb_home_rush_td_text").innerText  = "TD tierra: 0";
+    // Si Cyclones Navy es local
+    if (homeName === TRACKED_TEAM && homeQB) {
+      qbCyclones = homeQB;
     }
-*/
-    if (awayQB) {
-      const metaText =
-        "Nombre: " + (awayQB.name || "–") +
-        (awayQB.position ? " • Posición: " + awayQB.position : "");
-      document.getElementById("qb_away_meta").innerText = metaText;
+    // Si Cyclones Navy es visitante
+    else if (awayName === TRACKED_TEAM && awayQB) {
+      qbCyclones = awayQB;
+    }
 
-      const s = awayQB.stats || {};
-      document.getElementById("qb_away_pass_yds_text").innerText = "Yds pase: " + (s.pass_yds ?? 0);
-      document.getElementById("qb_away_pass_td_text").innerText  = "TD pase: " + (s.pass_td ?? 0);
-      document.getElementById("qb_away_int_text").innerText      = "Intercepciones: " + (s.ints ?? 0);
-      document.getElementById("qb_away_rush_yds_text").innerText = "Yds tierra: " + (s.rush_yds ?? 0);
-      document.getElementById("qb_away_rush_td_text").innerText  = "TD tierra: " + (s.rush_td ?? 0);
+    const titleEl = document.getElementById("qb_cyclones_title");
+    const metaEl  = document.getElementById("qb_cyclones_meta");
+    const passYdsEl = document.getElementById("qb_cyclones_pass_yds");
+    const passTdEl  = document.getElementById("qb_cyclones_pass_td");
+    const intEl     = document.getElementById("qb_cyclones_int");
+    const rushYdsEl = document.getElementById("qb_cyclones_rush_yds");
+    const rushTdEl  = document.getElementById("qb_cyclones_rush_td");
+
+    if (qbCyclones) {
+      const name = qbCyclones.name || "–";
+      const pos  = qbCyclones.position || "QB";
+      const s    = qbCyclones.stats || {};
+
+      titleEl.innerText = TRACKED_TEAM + " - " + pos;
+      metaEl.innerText  = "Nombre: " + name;
+
+      passYdsEl.innerText = "Yds pase: " + (s.pass_yds ?? 0);
+      passTdEl.innerText  = "TD pase: " + (s.pass_td ?? 0);
+      intEl.innerText     = "Intercepciones: " + (s.ints ?? 0);
+      rushYdsEl.innerText = "Yds tierra: " + (s.rush_yds ?? 0);
+      rushTdEl.innerText  = "TD tierra: " + (s.rush_td ?? 0);
     } else {
-      document.getElementById("qb_away_meta").innerText = "Nombre: –";
-      document.getElementById("qb_away_pass_yds_text").innerText = "Yds pase: 0";
-      document.getElementById("qb_away_pass_td_text").innerText  = "TD pase: 0";
-      document.getElementById("qb_away_int_text").innerText      = "Intercepciones: 0";
-      document.getElementById("qb_away_rush_yds_text").innerText = "Yds tierra: 0";
-      document.getElementById("qb_away_rush_td_text").innerText  = "TD tierra: 0";
+      // Si no hay datos para Cyclones Navy
+      titleEl.innerText = TRACKED_TEAM + " - QB";
+      metaEl.innerText  = "Nombre: – (captura las estadísticas en el panel administrador)";
+      passYdsEl.innerText = "Yds pase: 0";
+      passTdEl.innerText  = "TD pase: 0";
+      intEl.innerText     = "Intercepciones: 0";
+      rushYdsEl.innerText = "Yds tierra: 0";
+      rushTdEl.innerText  = "TD tierra: 0";
     }
   });
 </script>

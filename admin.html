@@ -38,14 +38,14 @@
       font-size:16px;
       transition:transform 0.2s ease;
     }
-    .box-content {
-      padding:12px 14px 14px;
-    }
     .box.collapsed .box-content {
       display:none;
     }
     .box.collapsed .toggle-icon {
       transform:rotate(-90deg);
+    }
+    .box-content {
+      padding:12px 14px 14px;
     }
 
     .field-group {
@@ -81,37 +81,28 @@
     .anot-col.home { border:1px solid #6ec9ff; }
     .anot-col.away { border:1px solid #94b3ff; }
 
-    .qb-grid {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-    }
     .qb-card {
-      flex:1 1 230px;
       background:#202020;
       border-radius:8px;
       padding:10px;
+      max-width:280px;
     }
     .qb-card h3 {
       margin-top:0;
       font-size:15px;
       margin-bottom:8px;
     }
-    .qb-stats-row {
+    .qb-row {
       display:flex;
-      flex-wrap:wrap;
-      gap:4px 8px;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:4px;
       font-size:13px;
-      margin-bottom:3px;
     }
-    .qb-stats-row label {
-      min-width:120px;
-    }
-    .qb-card button {
-      margin-top:6px;
+    .qb-row label {
+      min-width:110px;
     }
 
-    /* Botones principales */
     .danger-btn {
       background:#b30000;
       color:white;
@@ -129,7 +120,9 @@
       cursor:pointer;
     }
 
-    /* Logo pequeño en esquina */
+    #poll_summary { font-size:13px; }
+
+    /* Logo OVT esquina */
     #ovt-corner-logo {
       position: fixed;
       bottom: 12px;
@@ -138,10 +131,6 @@
       width: 80px;
       pointer-events: none;
       z-index: 9999;
-    }
-
-    @media (max-width:600px) {
-      button, select, input { font-size:13px; }
     }
   </style>
 </head>
@@ -197,7 +186,7 @@
       <select id="quarter">
         <option>1Q</option>
         <option>2Q</option>
-        <option>MT</option> <!-- Medio tiempo -->
+        <option>MT</option>
         <option>3Q</option>
         <option>4Q</option>
         <option>OT</option>
@@ -234,8 +223,8 @@
         <button onclick="addPoints('home',6,'Touchdown','run')">TD Tierra +6</button>
         <button onclick="addPoints('home',6,'Touchdown','pass')">TD Aire +6</button><br>
         <button onclick="addPoints('home',1,'Extra Point')">XP +1</button>
-        <button onclick="addPoints('home',2,'2pt Conversion','run')">Conv. 2 pts (tierra)</button>
-        <button onclick="addPoints('home',2,'2pt Conversion','pass')">Conv. 2 pts (aire)</button><br>
+        <button onclick="addPoints('home',2,'2pt Conversion','run')">Conv 2 pts (tierra)</button>
+        <button onclick="addPoints('home',2,'2pt Conversion','pass')">Conv 2 pts (aire)</button><br>
         <button onclick="addPoints('home',3,'Field Goal')">FG +3</button>
         <button onclick="addPoints('home',2,'Safety')">Safety +2</button>
       </div>
@@ -245,8 +234,8 @@
         <button onclick="addPoints('away',6,'Touchdown','run')">TD Tierra +6</button>
         <button onclick="addPoints('away',6,'Touchdown','pass')">TD Aire +6</button><br>
         <button onclick="addPoints('away',1,'Extra Point')">XP +1</button>
-        <button onclick="addPoints('away',2,'2pt Conversion','run')">Conv. 2 pts (tierra)</button>
-        <button onclick="addPoints('away',2,'2pt Conversion','pass')">Conv. 2 pts (aire)</button><br>
+        <button onclick="addPoints('away',2,'2pt Conversion','run')">Conv 2 pts (tierra)</button>
+        <button onclick="addPoints('away',2,'2pt Conversion','pass')">Conv 2 pts (aire)</button><br>
         <button onclick="addPoints('away',3,'Field Goal')">FG +3</button>
         <button onclick="addPoints('away',2,'Safety')">Safety +2</button>
       </div>
@@ -254,85 +243,48 @@
   </div>
 </div>
 
-<!-- ESTADÍSTICAS QB -->
+<!-- ESTADÍSTICAS QB (solo Cyclones Navy) -->
 <div class="box">
   <div class="box-header" onclick="toggleBox(this)">
-    <h2>Estadísticas QB (partido actual)</h2>
+    <h2>Estadísticas QB (Cyclones Navy)</h2>
     <span class="toggle-icon">▼</span>
   </div>
   <div class="box-content">
-    <div class="qb-grid">
-      <!-- QB LOCAL -->
-      <div class="qb-card">
-        <h3>QB Local</h3>
-        <div class="field-group">
-          <label>Nombre</label>
-          <input id="qb_home_name" />
-        </div>
-        <div class="field-group">
-          <label>Posición</label>
-          <input id="qb_home_pos" value="QB" />
-        </div>
-        <div class="qb-stats-row">
-          <label>Yds pase</label>
-          <input id="qb_home_pass_yds" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>TD pase</label>
-          <input id="qb_home_pass_td" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>Intercepciones</label>
-          <input id="qb_home_int" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>Yds tierra</label>
-          <input id="qb_home_rush_yds" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>TD tierra</label>
-          <input id="qb_home_rush_td" type="number" value="0" />
-        </div>
-        <button onclick="saveQB('home')">Guardar QB Local</button>
+    <div class="qb-card">
+      <h3>Cyclones Navy - QB</h3>
+      <div class="qb-row">
+        <label>Nombre</label>
+        <input id="qb_name" />
       </div>
-
-      <!-- QB VISITANTE -->
-      <div class="qb-card">
-        <h3>QB Visitante</h3>
-        <div class="field-group">
-          <label>Nombre</label>
-          <input id="qb_away_name" />
-        </div>
-        <div class="field-group">
-          <label>Posición</label>
-          <input id="qb_away_pos" value="QB" />
-        </div>
-        <div class="qb-stats-row">
-          <label>Yds pase</label>
-          <input id="qb_away_pass_yds" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>TD pase</label>
-          <input id="qb_away_pass_td" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>Intercepciones</label>
-          <input id="qb_away_int" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>Yds tierra</label>
-          <input id="qb_away_rush_yds" type="number" value="0" />
-        </div>
-        <div class="qb-stats-row">
-          <label>TD tierra</label>
-          <input id="qb_away_rush_td" type="number" value="0" />
-        </div>
-        <button onclick="saveQB('away')">Guardar QB Visitante</button>
+      <div class="qb-row">
+        <label>Posición</label>
+        <input id="qb_pos" value="QB" />
       </div>
+      <div class="qb-row">
+        <label>Yds pase</label>
+        <input id="qb_pass_yds" type="number" value="0" />
+      </div>
+      <div class="qb-row">
+        <label>TD pase</label>
+        <input id="qb_pass_td" type="number" value="0" />
+      </div>
+      <div class="qb-row">
+        <label>Intercepciones</label>
+        <input id="qb_int" type="number" value="0" />
+      </div>
+      <div class="qb-row">
+        <label>Yds tierra</label>
+        <input id="qb_rush_yds" type="number" value="0" />
+      </div>
+      <div class="qb-row">
+        <label>TD tierra</label>
+        <input id="qb_rush_td" type="number" value="0" />
+      </div>
+      <button onclick="saveQB()">Guardar QB Cyclones Navy</button>
+      <p style="font-size:11px;opacity:0.8;margin-top:4px;">
+        Más adelante podemos extender esta estructura para otros jugadores.
+      </p>
     </div>
-    <p style="font-size:12px;opacity:0.8;margin-top:6px;">
-      Más adelante podemos agregar más posiciones y estadísticas usando esta misma estructura.
-    </p>
   </div>
 </div>
 
@@ -345,7 +297,7 @@
   <div class="box-content">
     <button onclick="enablePoll(true)">Activar encuesta</button>
     <button onclick="enablePoll(false)">Ocultar encuesta</button>
-    <div id="poll_summary" style="margin-top:10px; font-size:14px;"></div>
+    <div id="poll_summary" style="margin-top:10px;"></div>
   </div>
 </div>
 
@@ -362,18 +314,25 @@
 </div>
 
 <script>
-  const refTeams = db.ref("teams");
-  const refGame  = db.ref("game");
+  // Referencias Firebase
+  var refTeams = db.ref("teams");
+  var refGame  = db.ref("game");
 
-  const QUARTER_ORDER = ["1Q", "2Q", "MT", "3Q", "4Q", "OT"];
+  // Orden de cuartos permitido
+  var QUARTER_ORDER = ["1Q","2Q","MT","3Q","4Q","OT"];
 
+  // Colapsar cajas
   function toggleBox(headerEl) {
-    const box = headerEl.parentElement;
-    box.classList.toggle("collapsed");
+    var box = headerEl.parentElement;
+    if (box.classList.contains("collapsed")) {
+      box.classList.remove("collapsed");
+    } else {
+      box.classList.add("collapsed");
+    }
   }
 
-  // ===== FRASES EPICAS =====
-  const FRASES_TD = [
+  // ----- FRASES -----
+  var FRASES_TD = [
     "tras una serie ofensiva perfecta que culmina en la zona de anotación.",
     "rematando una ofensiva larga que desgastó por completo a la defensa rival.",
     "aprovechando al máximo la oportunidad en la zona roja.",
@@ -384,13 +343,14 @@
     "mostrando temple en una serie crucial cerca de la anotación.",
     "aprovechando cada yarda hasta llegar a la zona prometida.",
     "cerrando una posesión importante con puntos en el marcador.",
+    "desnudando las grietas de la defensiva rival en la zona de anotación.",
     "imponiendo condiciones en el momento justo del encuentro.",
     "capitalizando un buen campo de posición para llegar a las diagonales.",
     "haciendo pagar caro a la defensa por dejar espacios en su esquema.",
     "sumando seis puntos que cambian el ritmo del partido."
   ];
 
-  const FRASES_FG = [
+  var FRASES_FG = [
     "con un gol de campo seguro que suma tres puntos al marcador.",
     "aprovechando la oportunidad y eligiendo la vía segura de tres puntos.",
     "con una patada precisa que pasa justo entre los postes.",
@@ -400,4 +360,452 @@
     "con un gol de campo que mantiene viva la ofensiva.",
     "acortando la distancia con una patada bien ejecutada.",
     "castigando la defensa rival con tres puntos desde la larga distancia.",
-    "tras quedarse cortos en zona ro
+    "tras quedarse cortos en zona roja pero capitalizando con un FG.",
+    "asegurando puntos en una serie que parecía perderse.",
+    "con una patada que mantiene la presión sobre el rival.",
+    "sumando de a poco pero sin dejar de anotar.",
+    "que mantiene el juego dentro de una posesión.",
+    "con un gol de campo que silencía momentáneamente a la afición rival."
+  ];
+
+  var FRASES_XP = [
+    "convirtiendo sin problemas el punto extra.",
+    "asegurando el punto adicional para completar la serie.",
+    "sumando un punto más que redondea la anotación.",
+    "manteniendo la confianza en la unidad de gol de campo.",
+    "con una patada sencilla pero importante para el marcador.",
+    "completando los siete puntos tras el touchdown.",
+    "demostrando solidez en la ejecución del punto extra.",
+    "sin margen de error en el intento de XP.",
+    "sumando un punto que podría marcar diferencia al final.",
+    "cerrando la ofensiva con el adicional bueno.",
+    "mostrando seguridad total del pateador.",
+    "con un XP perfecto que no deja dudas.",
+    "añadiendo un punto más a la cuenta.",
+    "confirmando la ventaja obtenida con el touchdown.",
+    "redondeando una gran serie ofensiva."
+  ];
+
+  var FRASES_SAFETY = [
+    "gracias a una defensa implacable que encierra al rival en su propia zona.",
+    "aprovechando la presión defensiva para forzar el error en la zona de anotación.",
+    "con una jugada defensiva enorme que termina en safety.",
+    "demostrando un front defensivo dominante que no da respiro.",
+    "forzando al mariscal rival a cometer un error costoso en su propia zona.",
+    "haciendo sentir el peso de la defensiva y sumando dos puntos importantes.",
+    "castigando a la ofensiva rival con una jugada espectacular detrás de la línea.",
+    "con un safety que cambia la inercia del partido.",
+    "demostrando que la defensa también puede poner puntos en el marcador.",
+    "aprovechando una mala protección para encerrar al corredor.",
+    "haciendo retroceder tanto a la ofensiva rival que terminan dentro de su propia zona.",
+    "con una lectura perfecta de la jugada ofensiva para conseguir el safety.",
+    "sumando dos puntos defensivos que levantan al equipo.",
+    "dejando claro que no hay espacio para errores cerca de la propia zona.",
+    "con una jugada defensiva que prende fuego a la banca y a la afición."
+  ];
+
+  var FRASES_2PT = [
+    "arriesgando con una conversión de dos puntos que sale perfecta.",
+    "demostrando agresividad ofensiva al ir por dos y conseguirlo.",
+    "aprovechando el momento para sumar dos puntos extra fundamentales.",
+    "rompiendo el guion con una jugada de dos puntos muy bien ejecutada.",
+    "mandando un mensaje claro: este equipo viene a ganar, no a conformarse con uno.",
+    "con una conversión de dos puntos que mantiene la presión sobre la defensa rival.",
+    "decidiendo no ir por el punto extra tradicional y cobrando dos completos.",
+    "con una jugada diseñada específicamente para la conversión, ejecutada a la perfección.",
+    "mostrando confianza total en la ofensiva al buscar y conseguir dos puntos más.",
+    "sumando dos puntos que pueden marcar la diferencia en un cierre apretado.",
+    "con una conversión que hace explotar a la banca y a la afición.",
+    "aprovechando la confusión defensiva para convertir dos puntos más.",
+    "arriesgando en la zona roja y siendo recompensados con dos puntos adicionales.",
+    "con una jugada engaño que termina en conversión de dos puntos.",
+    "sumando dos puntos que amplían la ventaja en el momento justo."
+  ];
+
+  function extraContexto(flags) {
+    if (flags.esOT)        return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
+    if (flags.esRemontada) return " Esta jugada completa una gran remontada que cambia la historia del partido.";
+    if (flags.esCerrado)   return " El marcador sigue muy cerrado y cada punto pesa muchísimo.";
+    if (flags.esPaliza)    return " La ventaja sigue creciendo y el dominio es cada vez más claro.";
+    return "";
+  }
+
+  function narrarJugada(data, teamSide, pts, tipoCorto, modo) {
+    var quarter      = data.quarter || "";
+    var nombreEquipo = (teamSide === "home") ? data.team_home : data.team_away;
+
+    var oldHome = data.score_home || 0;
+    var oldAway = data.score_away || 0;
+
+    var newHome = (teamSide === "home") ? oldHome + pts : oldHome;
+    var newAway = (teamSide === "away") ? oldAway + pts : oldAway;
+
+    var via = "";
+    if (tipoCorto === "TD" || tipoCorto === "2PT") {
+      if (modo === "run")  via = " por tierra";
+      if (modo === "pass") via = " por aire";
+    }
+
+    var accionBase = quarter + " • " + tipoCorto + " de " + nombreEquipo + via + " (" + pts + " pts)";
+
+    var diffNueva = Math.abs(newHome - newAway);
+
+    var ibaPerdiendo =
+      (teamSide === "home" && oldHome < oldAway) ||
+      (teamSide === "away" && oldAway < oldHome);
+
+    var ahoraVaGanando =
+      (teamSide === "home" && newHome > newAway) ||
+      (teamSide === "away" && newAway > newHome);
+
+    var flags = {
+      esRemontada: ibaPerdiendo && ahoraVaGanando,
+      esCerrado:   diffNueva <= 3,
+      esPaliza:    diffNueva >= 20,
+      esOT:        quarter === "OT"
+    };
+
+    var pool = [];
+    if (tipoCorto === "TD")          pool = FRASES_TD;
+    else if (tipoCorto === "FG")     pool = FRASES_FG;
+    else if (tipoCorto === "XP")     pool = FRASES_XP;
+    else if (tipoCorto === "2PT")    pool = FRASES_2PT;
+    else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
+
+    var frase = "";
+    if (pool.length > 0) {
+      frase = pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    var extra = extraContexto(flags);
+    return (accionBase + " " + frase + extra).trim();
+  }
+
+  // ----- LÓGICA PANEL -----
+
+  function addTeam() {
+    var name  = document.getElementById("new_team_name").value.trim();
+    var color = document.getElementById("new_team_color").value;
+
+    if (!name) {
+      alert("Escribe un nombre primero");
+      return;
+    }
+
+    refTeams.child(name).set({ color: color }, function(err) {
+      if (err) {
+        console.error(err);
+        alert("Error al guardar el equipo");
+      } else {
+        alert("Equipo guardado");
+        document.getElementById("new_team_name").value = "";
+      }
+    });
+  }
+
+  refTeams.on("value", function(snap) {
+    var teams = snap.val() || {};
+    var homeSel = document.getElementById("team_home_select");
+    var awaySel = document.getElementById("team_away_select");
+    homeSel.innerHTML = "";
+    awaySel.innerHTML = "";
+    for (var t in teams) {
+      homeSel.innerHTML += "<option>" + t + "</option>";
+      awaySel.innerHTML += "<option>" + t + "</option>";
+    }
+  });
+
+  var lastQuarter = null;
+
+  setInterval(function() {
+    var qSel  = document.getElementById("quarter").value || "1Q";
+    var home  = document.getElementById("team_home_select").value || "";
+    var away  = document.getElementById("team_away_select").value || "";
+    var date  = document.getElementById("date").value || "";
+    var place = document.getElementById("location").value || "";
+
+    if (lastQuarter === null) {
+      lastQuarter = qSel;
+    } else if (qSel !== lastQuarter) {
+      var idxOld = QUARTER_ORDER.indexOf(lastQuarter);
+      var idxNew = QUARTER_ORDER.indexOf(qSel);
+
+      if (idxNew !== idxOld + 1) {
+        document.getElementById("quarter").value = lastQuarter;
+        alert("Secuencia inválida de cuartos. El orden permitido es 1Q → 2Q → MT → 3Q → 4Q → OT.");
+        return;
+      }
+
+      refGame.once("value", function(snap) {
+        var data = snap.val() || {};
+        var tl = data.timeline || [];
+
+        var msg = "";
+        if (qSel === "MT") {
+          msg = "Termina el " + lastQuarter + ". Entramos a medio tiempo.";
+        } else if (lastQuarter === "MT") {
+          msg = "Termina el medio tiempo, comienza el " + qSel + ".";
+        } else {
+          msg = "Se termina el " + lastQuarter + ". Comienza el " + qSel + ".";
+        }
+
+        tl.push(msg);
+
+        refGame.update({
+          team_home: home,
+          team_away: away,
+          date:      date,
+          location:  place,
+          quarter:   qSel,
+          timeline:  tl
+        });
+
+        lastQuarter = qSel;
+      });
+
+      return;
+    }
+
+    refGame.update({
+      team_home: home,
+      team_away: away,
+      date:      date,
+      location:  place,
+      quarter:   qSel
+    });
+  }, 1500);
+
+  function setPossession(team) {
+    refGame.update({ possession: team });
+  }
+
+  function addPoints(teamSide, pts, tipoLabel, modo) {
+    refGame.once("value", function(snap) {
+      var data = snap.val() || {};
+      var oldHome = data.score_home || 0;
+      var oldAway = data.score_away || 0;
+
+      var tipoCorto = "";
+      if (tipoLabel.indexOf("Touchdown") !== -1)        tipoCorto = "TD";
+      else if (tipoLabel.indexOf("Field Goal") !== -1)  tipoCorto = "FG";
+      else if (tipoLabel.indexOf("2pt") !== -1)         tipoCorto = "2PT";
+      else if (tipoLabel.indexOf("Extra") !== -1 ||
+               tipoLabel.indexOf("XP") !== -1)          tipoCorto = "XP";
+      else if (tipoLabel.indexOf("Safety") !== -1)      tipoCorto = "Safety";
+
+      var fraseCompleta = narrarJugada(
+        {
+          team_home: data.team_home || "",
+          team_away: data.team_away || "",
+          quarter:   data.quarter || "1Q",
+          score_home: oldHome,
+          score_away: oldAway
+        },
+        teamSide,
+        pts,
+        tipoCorto,
+        modo
+      );
+
+      var timelineActual = data.timeline || [];
+      timelineActual.push(fraseCompleta);
+
+      var newHome = (teamSide === "home") ? oldHome + pts : oldHome;
+      var newAway = (teamSide === "away") ? oldAway + pts : oldAway;
+
+      refGame.update({
+        score_home: newHome,
+        score_away: newAway,
+        timeline:   timelineActual
+      });
+    });
+  }
+
+  // ---- QB Cyclones Navy ----
+  function saveQB() {
+    var name     = document.getElementById("qb_name").value.trim();
+    var pos      = document.getElementById("qb_pos").value.trim() || "QB";
+    var passYds  = parseInt(document.getElementById("qb_pass_yds").value,10) || 0;
+    var passTD   = parseInt(document.getElementById("qb_pass_td").value,10) || 0;
+    var ints     = parseInt(document.getElementById("qb_int").value,10) || 0;
+    var rushYds  = parseInt(document.getElementById("qb_rush_yds").value,10) || 0;
+    var rushTD   = parseInt(document.getElementById("qb_rush_td").value,10) || 0;
+
+    var qbData = {
+      team: "Cyclones Navy",
+      name: name,
+      position: pos,
+      stats: {
+        pass_yds:  passYds,
+        pass_td:   passTD,
+        ints:      ints,
+        rush_yds:  rushYds,
+        rush_td:   rushTD
+      }
+    };
+
+    refGame.child("qb").set(qbData, function(err) {
+      if (err) {
+        console.error(err);
+        alert("No se pudieron guardar las estadísticas del QB.");
+      } else {
+        alert("QB Cyclones Navy guardado.");
+      }
+    });
+  }
+
+  // ---- Finalizar / reset ----
+  function finishGame() {
+    refGame.once("value", function(snap) {
+      var data = snap.val() || {};
+
+      var homeName = data.team_home || "Local";
+      var awayName = data.team_away || "Visitante";
+      var home     = data.score_home || 0;
+      var away     = data.score_away || 0;
+
+      var tl = data.timeline || [];
+      tl.push("FINAL • El partido termina con marcador " +
+              homeName + " " + home + " - " + away + " " + awayName + ".");
+
+      var timestamp = Date.now();
+      var historyRef = db.ref("history").child(String(timestamp));
+
+      var historyData = {
+        team_home:  data.team_home || "",
+        team_away:  data.team_away || "",
+        date:       data.date || "",
+        location:   data.location || "",
+        quarter:    data.quarter || "",
+        score_home: home,
+        score_away: away,
+        possession: data.possession || null,
+        qb:         data.qb || null,
+        timeline:   tl,
+        finished:   true,
+        finishedAt: timestamp
+      };
+
+      historyRef.set(historyData, function(err) {
+        if (err) {
+          console.error(err);
+          alert("Ocurrió un error al guardar el partido en historial.");
+        } else {
+          refGame.set({
+            team_home: "",
+            team_away: "",
+            date: "",
+            location: "",
+            quarter: "1Q",
+            score_home: 0,
+            score_away: 0,
+            possession: null,
+            timeline: [],
+            pollEnabled: false,
+            pollVotes: null,
+            qb: null
+          }, function(err2) {
+            if (err2) {
+              console.error(err2);
+              alert("Ocurrió un error al reiniciar el marcador.");
+            } else {
+              document.getElementById("team_home_select").value = "";
+              document.getElementById("team_away_select").value = "";
+              document.getElementById("date").value = "";
+              document.getElementById("location").value = "";
+              document.getElementById("quarter").value = "1Q";
+              lastQuarter = "1Q";
+              alert("Partido finalizado, guardado en historial y marcador reiniciado.");
+            }
+          });
+        }
+      });
+    });
+  }
+
+  function resetGame() {
+    if (!confirm("¿Seguro que quieres resetear el marcador sin guardar este partido en el historial?")) return;
+
+    refGame.set({
+      team_home: "",
+      team_away: "",
+      date: "",
+      location: "",
+      quarter: "1Q",
+      score_home: 0,
+      score_away: 0,
+      possession: null,
+      timeline: [],
+      pollEnabled: false,
+      pollVotes: null,
+      qb: null
+    }, function(err) {
+      if (err) {
+        console.error(err);
+        alert("No se pudo resetear el marcador.");
+      } else {
+        document.getElementById("team_home_select").value = "";
+        document.getElementById("team_away_select").value = "";
+        document.getElementById("date").value = "";
+        document.getElementById("location").value = "";
+        document.getElementById("quarter").value = "1Q";
+        lastQuarter = "1Q";
+        alert("Marcador reseteado.");
+      }
+    });
+  }
+
+  function enablePoll(active) {
+    refGame.update({ pollEnabled: !!active });
+  }
+
+  // Resumen de encuesta y cargar QB en formulario
+  refGame.on("value", function(snap) {
+    var data = snap.val() || {};
+    var summaryEl = document.getElementById("poll_summary");
+    if (summaryEl) {
+      var votes = data.pollVotes || {};
+      var homeCount = 0;
+      var awayCount = 0;
+
+      for (var id in votes) {
+        if (!votes.hasOwnProperty(id)) continue;
+        var v = votes[id];
+        if (v.team === "home") homeCount++;
+        else if (v.team === "away") awayCount++;
+      }
+
+      var total   = homeCount + awayCount;
+      var homePct = total ? Math.round((homeCount / total) * 100) : 0;
+      var awayPct = total ? Math.round((awayCount / total) * 100) : 0;
+
+      var homeName = data.team_home || "Local";
+      var awayName = data.team_away || "Visitante";
+
+      summaryEl.innerHTML =
+        "<p>Encuesta: <strong>" + (data.pollEnabled ? "ACTIVA" : "INACTIVA") + "</strong></p>" +
+        "<p>" + homeName + ": " + homeCount + " voto(s) (" + homePct + "%)</p>" +
+        "<p>" + awayName + ": " + awayCount + " voto(s) (" + awayPct + "%)</p>" +
+        "<p>Total: " + total + " voto(s)</p>";
+    }
+
+    // llenar formulario QB si hay datos
+    if (data.qb) {
+      document.getElementById("qb_name").value      = data.qb.name || "";
+      document.getElementById("qb_pos").value       = data.qb.position || "QB";
+      document.getElementById("qb_pass_yds").value  = (data.qb.stats && data.qb.stats.pass_yds) || 0;
+      document.getElementById("qb_pass_td").value   = (data.qb.stats && data.qb.stats.pass_td) || 0;
+      document.getElementById("qb_int").value       = (data.qb.stats && data.qb.stats.ints) || 0;
+      document.getElementById("qb_rush_yds").value  = (data.qb.stats && data.qb.stats.rush_yds) || 0;
+      document.getElementById("qb_rush_td").value   = (data.qb.stats && data.qb.stats.rush_td) || 0;
+    }
+  });
+</script>
+
+<!-- Logo OVT -->
+<img id="ovt-corner-logo"
+     src="https://raw.githubusercontent.com/osvillat-alt/Scoreboard/main/bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png"
+     alt="OVT Logo">
+
+</body>
+</html>

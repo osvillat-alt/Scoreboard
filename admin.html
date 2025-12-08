@@ -15,12 +15,19 @@
     button, select, input { padding:10px; margin:5px; font-size:16px; }
     .box { border:1px solid #444; padding:15px; margin:10px 0; border-radius:10px; }
     h1, h2 { margin-top:0; }
+
+    /* Logo pequeño en esquina */
+    #ovt-corner-logo {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      opacity: 0.75;
+      width: 80px;
+      pointer-events: none;
+      z-index: 9999;
+    }
   </style>
 </head>
-
-  <img id="ovt-corner-logo"
-     src="https://raw.githubusercontent.com/osvillat-alt/Scoreboard/main/bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png"
-     alt="OVT Logo">
 
 <body>
 
@@ -68,15 +75,22 @@
 <!-- ANOTACIONES -->
 <div class="box">
   <h2>Anotaciones</h2>
-  <button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
+
+  <!-- LOCAL -->
+  <button onclick="addPoints('home',6,'Touchdown','run')">TD Tierra Local +6</button>
+  <button onclick="addPoints('home',6,'Touchdown','pass')">TD Aire Local +6</button>
   <button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
-  <button onclick="addPoints('home',2,'2pt Conversion')">Conv. 2 pts Local +2</button>
+  <button onclick="addPoints('home',2,'2pt Conversion','run')">Conv. 2 pts Local (tierra) +2</button>
+  <button onclick="addPoints('home',2,'2pt Conversion','pass')">Conv. 2 pts Local (aire) +2</button>
   <button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
   <button onclick="addPoints('home',2,'Safety')">Safety Local +2</button><br>
 
-  <button onclick="addPoints('away',6,'Touchdown')">TD Visitante +6</button>
+  <!-- VISITANTE -->
+  <button onclick="addPoints('away',6,'Touchdown','run')">TD Tierra Visitante +6</button>
+  <button onclick="addPoints('away',6,'Touchdown','pass')">TD Aire Visitante +6</button>
   <button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
-  <button onclick="addPoints('away',2,'2pt Conversion')">Conv. 2 pts Visitante +2</button>
+  <button onclick="addPoints('away',2,'2pt Conversion','run')">Conv. 2 pts Visitante (tierra) +2</button>
+  <button onclick="addPoints('away',2,'2pt Conversion','pass')">Conv. 2 pts Visitante (aire) +2</button>
   <button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
   <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
 </div>
@@ -105,21 +119,21 @@
 
   // ================== FRASES ÉPICAS ==================
   const FRASES_TD = [
-    "con una jugada explosiva que rompe la defensa.",
-    "tras una serie ofensiva perfecta que culmina en las diagonales.",
-    "con un acarreo poderoso que nadie pudo detener.",
-    "gracias a un pase preciso que encuentra a su receptor en la zona de anotación.",
-    "rematando una larga ofensiva que desgastó por completo a la defensa rival.",
-    "aprovechando un error defensivo para convertir seis puntos vitales.",
-    "con una jugada sorpresa que tomó desprevenida a la defensiva.",
-    "mostrando poder ofensivo y autoridad en la zona roja.",
-    "con una gran combinación por aire que termina en touchdown.",
-    "tras mover las cadenas con calma y ejecutar a la perfección en zona roja.",
-    "encendiendo al público con un touchdown espectacular.",
-    "demostrando sangre fría en tercera oportunidad cerca de la zona de anotación.",
-    "con una ofensiva rápida que recorrió el campo en pocos intentos.",
-    "aprovechando cada yarda para llegar a la zona prometida.",
-    "con un ataque terrestre contundente que abre el camino a seis puntos."
+    "tras una serie ofensiva perfecta que culmina en la zona de anotación.",
+    "rematando una ofensiva larga que desgastó por completo a la defensa rival.",
+    "aprovechando al máximo la oportunidad en la zona roja.",
+    "coronando un drive sostenido que avanzó yarda a yarda.",
+    "con una ejecución impecable cerca de la línea de gol.",
+    "terminando una ofensiva paciente y muy bien manejada.",
+    "rompiendo el equilibrio del partido con seis puntos clave.",
+    "mostrando temple en una serie crucial cerca de la anotación.",
+    "aprovechando cada yarda hasta llegar a la zona prometida.",
+    "cerrando una posesión importante con puntos en el marcador.",
+    "desnudando las grietas de la defensiva rival en la zona de anotación.",
+    "imponiendo condiciones en el momento justo del encuentro.",
+    "capitalizando un buen campo de posición para llegar a las diagonales.",
+    "haciendo pagar caro a la defensa por dejar espacios en su esquema.",
+    "sumando seis puntos que cambian el ritmo del partido."
   ];
 
   const FRASES_FG = [
@@ -194,7 +208,7 @@
     "sumando dos puntos que amplían la ventaja en el momento justo."
   ];
 
-  // ================== NARRADOR ==================
+  // ================== CONTEXTO EXTRA ==================
   function extraContexto({ esOT, esRemontada, esCerrado, esPaliza }) {
     if (esOT)       return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
     if (esRemontada)return " Esta jugada completa una gran remontada que cambia la historia del partido.";
@@ -203,7 +217,8 @@
     return "";
   }
 
-  function narrarJugada(data, teamSide, pts, tipoCorto) {
+  // ================== NARRADOR ==================
+  function narrarJugada(data, teamSide, pts, tipoCorto, modo) {
     const quarter      = data.quarter || "";
     const nombreEquipo = teamSide === "home" ? data.team_home : data.team_away;
 
@@ -213,7 +228,14 @@
     const newHome = teamSide === "home" ? oldHome + pts : oldHome;
     const newAway = teamSide === "away" ? oldAway + pts : oldAway;
 
-    const accionBase = `${quarter} • ${tipoCorto} de ${nombreEquipo} (${pts} pts)`;
+    // texto extra según modo (solo TD / 2PT)
+    let via = "";
+    if (tipoCorto === "TD" || tipoCorto === "2PT") {
+      if (modo === "run")  via = " por tierra";
+      if (modo === "pass") via = " por aire";
+    }
+
+    const accionBase = `${quarter} • ${tipoCorto} de ${nombreEquipo}${via} (${pts} pts)`;
 
     const diffNueva = Math.abs(newHome - newAway);
 
@@ -344,7 +366,7 @@
     refGame.update({ possession: team });
   }
 
-  function addPoints(teamSide, pts, tipoLabel) {
+  function addPoints(teamSide, pts, tipoLabel, modo) {
     refGame.once("value").then(snap => {
       const data = snap.val() || {};
 
@@ -354,7 +376,7 @@
       let tipoCorto = "";
       if (tipoLabel.includes("Touchdown"))           tipoCorto = "TD";
       else if (tipoLabel.includes("Field Goal"))     tipoCorto = "FG";
-      else if (tipoLabel.includes("2pt"))           tipoCorto = "2PT";
+      else if (tipoLabel.includes("2pt"))            tipoCorto = "2PT";
       else if (tipoLabel.includes("Extra") ||
                tipoLabel.includes("XP"))             tipoCorto = "XP";
       else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
@@ -363,7 +385,8 @@
         { ...data, score_home: oldHome, score_away: oldAway },
         teamSide,
         pts,
-        tipoCorto
+        tipoCorto,
+        modo
       );
 
       const timelineActual = data.timeline || [];
@@ -492,6 +515,11 @@
     `;
   });
 </script>
+
+<!-- Logo OVT en esquina -->
+<img id="ovt-corner-logo"
+     src="https://raw.githubusercontent.com/osvillat-alt/Scoreboard/main/bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png"
+     alt="OVT Logo">
 
 </body>
 </html>

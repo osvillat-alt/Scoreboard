@@ -129,10 +129,10 @@ body {
   }
  
     position: fixed;
-    bottom: 12px;
-    right: 12px;
+    bottom: 15px;
+    right: 10px;
     opacity: 0.75; 
-    width: 50px;  
+    width: 20px;  
     pointer-events: none; 
     z-index: 9999;
 }

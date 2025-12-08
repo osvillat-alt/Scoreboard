@@ -132,7 +132,7 @@ body {
     bottom: 12px;
     right: 12px;
     opacity: 0.75; 
-    width: 80px;  
+    width: 50px;  
     pointer-events: none; 
     z-index: 9999;
 }

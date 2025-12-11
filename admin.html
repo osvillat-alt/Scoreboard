@@ -130,20 +130,30 @@
 
   <hr>
 
-  <h3>Anotaciones Local</h3>
-  <button onclick="addPoints('home',6,'Touchdown')">TD Local +6</button>
-  <button onclick="addPoints('home',1,'Extra Point')">XP Local +1</button>
-  <button onclick="addPoints('home',2,'2pt Conversion')">Conv. 2pts Local +2</button>
-  <button onclick="addPoints('home',3,'Field Goal')">FG Local +3</button>
-  <button onclick="addPoints('home',2,'Safety')">Safety Local +2</button>
+  <h3>Anotaciones</h3>
 
-  <h3>Anotaciones Visitante</h3>
-  <button onclick="addPoints('away',6,'Touchdown')">TD Visitante +6</button>
-  <button onclick="addPoints('away',1,'Extra Point')">XP Visitante +1</button>
-  <button onclick="addPoints('away',2,'2pt Conversion')">Conv. 2pts Visitante +2</button>
-  <button onclick="addPoints('away',3,'Field Goal')">FG Visitante +3</button>
-  <button onclick="addPoints('away',2,'Safety')">Safety Visitante +2</button>
-</details>
+<div style="border:1px solid #2b6cb0; border-radius:10px; padding:10px; margin-bottom:12px;">
+  <h4 style="margin:0 0 8px 0;">Local</h4>
+  <button onclick="addPoints('home',6,'TD_TIERA')">TD Tierra +6</button>
+  <button onclick="addPoints('home',6,'TD_AIRE')">TD Aire +6</button>
+  <button onclick="addPoints('home',1,'XP')">XP +1</button>
+  <button onclick="addPoints('home',2,'2PT_TIERA')">Conv 2 pts (tierra)</button>
+  <button onclick="addPoints('home',2,'2PT_AIRE')">Conv 2 pts (aire)</button>
+  <button onclick="addPoints('home',3,'FG')">FG +3</button>
+  <button onclick="addPoints('home',2,'SAFETY')">Safety +2</button>
+</div>
+
+<div style="border:1px solid #2b6cb0; border-radius:10px; padding:10px;">
+  <h4 style="margin:0 0 8px 0;">Visitante</h4>
+  <button onclick="addPoints('away',6,'TD_TIERA')">TD Tierra +6</button>
+  <button onclick="addPoints('away',6,'TD_AIRE')">TD Aire +6</button>
+  <button onclick="addPoints('away',1,'XP')">XP +1</button>
+  <button onclick="addPoints('away',2,'2PT_TIERA')">Conv 2 pts (tierra)</button>
+  <button onclick="addPoints('away',2,'2PT_AIRE')">Conv 2 pts (aire)</button>
+  <button onclick="addPoints('away',3,'FG')">FG +3</button>
+  <button onclick="addPoints('away',2,'SAFETY')">Safety +2</button>
+</div>
+
 
 <!-- ==================== CONTROL DEL PARTIDO ==================== -->
 <details class="section" open>
@@ -439,44 +449,82 @@
     return `${accionBase} ${frase}${extra}`.trim();
   }
 
-  function addPoints(teamSide, pts, tipoLabel) {
-    refGame.once("value").then(snap => {
-      const data = snap.val() || {};
+ function addPoints(teamSide, pts, tipoKey) {
+  refGame.once("value").then(snap => {
+    const data = snap.val() || {};
 
-      const oldHome = data.score_home || 0;
-      const oldAway = data.score_away || 0;
+    const oldHome = data.score_home || 0;
+    const oldAway = data.score_away || 0;
 
-      let tipoCorto = "";
-      if (tipoLabel.includes("Touchdown"))           tipoCorto = "TD";
-      else if (tipoLabel.includes("Field Goal"))     tipoCorto = "FG";
-      else if (tipoLabel.includes("2pt"))            tipoCorto = "2PT";
-      else if (tipoLabel.includes("Extra") ||
-               tipoLabel.includes("XP"))             tipoCorto = "XP";
-      else if (tipoLabel.includes("Safety"))         tipoCorto = "Safety";
+    const quarter = data.quarter || "1Q";
+    const nombreEquipo = teamSide === "home" ? (data.team_home || "Local") : (data.team_away || "Visitante");
 
-      const fraseCompleta = narrarJugada(
-        { ...data, score_home: oldHome, score_away: oldAway },
-        teamSide,
-        pts,
-        tipoCorto
-      );
+    // Texto corto y tipo para elegir frases
+    let tipoCorto = "";
+    let etiqueta = "";
 
-      const timelineActual = data.timeline || [];
-      const nuevoTimeline  = [...timelineActual, fraseCompleta];
+    if (tipoKey === "TD_TIERA") { tipoCorto = "TD"; etiqueta = "TD Tierra"; }
+    if (tipoKey === "TD_AIRE")  { tipoCorto = "TD"; etiqueta = "TD Aire"; }
+    if (tipoKey === "FG")       { tipoCorto = "FG"; etiqueta = "FG"; }
+    if (tipoKey === "XP")       { tipoCorto = "XP"; etiqueta = "XP"; }
+    if (tipoKey === "SAFETY")   { tipoCorto = "Safety"; etiqueta = "Safety"; }
+    if (tipoKey === "2PT_TIERA"){ tipoCorto = "2PT"; etiqueta = "Conv 2 pts (tierra)"; }
+    if (tipoKey === "2PT_AIRE") { tipoCorto = "2PT"; etiqueta = "Conv 2 pts (aire)"; }
 
-      const newHome = teamSide === "home" ? oldHome + pts : oldHome;
-      const newAway = teamSide === "away" ? oldAway + pts : oldAway;
+    // Armar narrativa épica pero sin mentir (tierra/aire)
+    // Usamos tu narrarJugada() pero con un "tipoCorto" compatible
+    // y además ponemos la etiqueta clara en el texto base.
+    const fraseBase = `${quarter} • ${etiqueta} de ${nombreEquipo} (${pts} pts)`;
 
-      return refGame.update({
-        score_home: newHome,
-        score_away: newAway,
-        timeline:   nuevoTimeline
-      });
-    }).catch(err => {
-      console.error(err);
-      alert("Error al registrar la anotación.");
+    // Reutilizamos tu lógica de contexto comparando marcador anterior/nuevo
+    const newHome = teamSide === "home" ? oldHome + pts : oldHome;
+    const newAway = teamSide === "away" ? oldAway + pts : oldAway;
+
+    const diffNueva = Math.abs(newHome - newAway);
+    const ibaPerdiendo =
+      (teamSide === "home" && oldHome < oldAway) ||
+      (teamSide === "away" && oldAway < oldHome);
+
+    const ahoraVaGanando =
+      (teamSide === "home" && newHome > newAway) ||
+      (teamSide === "away" && newAway > newHome);
+
+    const esRemontada = ibaPerdiendo && ahoraVaGanando;
+    const esCerrado   = diffNueva <= 3;
+    const esPaliza    = diffNueva >= 20;
+    const esOT        = quarter === "OT";
+
+    // Elegir pool de frases
+    let pool = [];
+    if (tipoCorto === "TD") pool = FRASES_TD;
+    else if (tipoCorto === "FG") pool = FRASES_FG;
+    else if (tipoCorto === "XP") pool = FRASES_XP;
+    else if (tipoCorto === "2PT") pool = FRASES_2PT;
+    else if (tipoCorto === "Safety") pool = FRASES_SAFETY;
+
+    const frase = pool[Math.floor(Math.random() * pool.length)] || "";
+    const extra = extraContexto({ esOT, esRemontada, esCerrado, esPaliza });
+
+    const fraseCompleta = `${fraseBase} ${frase}${extra}`.trim();
+
+    // Timeline (al final)
+    const timelineActual = data.timeline || [];
+    const nuevoTimeline  = [...timelineActual, fraseCompleta];
+
+    // Actualizar marcador
+    const finalHome = newHome;
+    const finalAway = newAway;
+
+    return refGame.update({
+      score_home: finalHome,
+      score_away: finalAway,
+      timeline: nuevoTimeline
     });
-  }
+  }).catch(err => {
+    console.error(err);
+    alert("Error al registrar la anotación.");
+  });
+}
 
   // ================== FINALIZAR / RESET ==================
   function resetGameInternal(msg) {

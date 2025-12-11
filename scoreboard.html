@@ -292,8 +292,6 @@
 
 <script>
   const refGame = db.ref("game");
-
-  // Nombre del equipo que queremos trackear
   const TRACKED_TEAM = "Cyclones Navy";
 
   // ID de dispositivo para limitar un voto
@@ -444,22 +442,48 @@
 
     // ========= ESTADÍSTICAS QB: SOLO CYCLOVES NAVY =========
     const players = data.players || {};
-    const homeQB  = players.home && players.home.qb ? players.home.qb : null;
-    const awayQB  = players.away && players.away.qb ? players.away.qb : null;
 
-    let qbCyclones = null;
+    // Para depurar si algo falla
+    console.log("players en game:", players);
 
-    // Si Cyclones Navy es local
-    if (homeName === TRACKED_TEAM && homeQB) {
-      qbCyclones = homeQB;
-    }
-    // Si Cyclones Navy es visitante
-    else if (awayName === TRACKED_TEAM && awayQB) {
-      qbCyclones = awayQB;
+    const qbList = [];
+
+    // 1) Caso players.qb directo
+    if (players.qb) {
+      qbList.push(players.qb);
     }
 
-    const titleEl = document.getElementById("qb_cyclones_title");
-    const metaEl  = document.getElementById("qb_cyclones_meta");
+    // 2) Caso players.home.qb / players.away.qb
+    if (players.home && players.home.qb) {
+      qbList.push(players.home.qb);
+    }
+    if (players.away && players.away.qb) {
+      qbList.push(players.away.qb);
+    }
+
+    // 3) Caso genérico
+    for (const key in players) {
+      const node = players[key];
+      if (!node) continue;
+
+      if (node.qb && qbList.indexOf(node.qb) === -1) {
+        qbList.push(node.qb);
+      }
+
+      if (node.stats && node.team && qbList.indexOf(node) === -1) {
+        qbList.push(node);
+      }
+    }
+
+    let qbCyclones = qbList.find(qb => qb && qb.team === TRACKED_TEAM) || null;
+
+    // Si solo hay un QB y no trae team, igual lo mostramos
+    if (!qbCyclones && qbList.length === 1) {
+      qbCyclones = qbList[0];
+    }
+
+    const titleEl   = document.getElementById("qb_cyclones_title");
+    const metaEl    = document.getElementById("qb_cyclones_meta");
     const passYdsEl = document.getElementById("qb_cyclones_pass_yds");
     const passTdEl  = document.getElementById("qb_cyclones_pass_td");
     const intEl     = document.getElementById("qb_cyclones_int");
@@ -480,7 +504,6 @@
       rushYdsEl.innerText = "Yds tierra: " + (s.rush_yds ?? 0);
       rushTdEl.innerText  = "TD tierra: " + (s.rush_td ?? 0);
     } else {
-      // Si no hay datos para Cyclones Navy
       titleEl.innerText = TRACKED_TEAM + " - QB";
       metaEl.innerText  = "Nombre: – (captura las estadísticas en el panel administrador)";
       passYdsEl.innerText = "Yds pase: 0";

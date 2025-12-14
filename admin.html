@@ -649,6 +649,28 @@
     }).then(()=>alert("QB guardado ✅"))
       .catch(e=>{ console.error(e); alert("Error guardando QB."); });
   };
+function addQbPassResult(isComplete) {
+  refQb.once("value").then(snap => {
+    const qb = snap.val() || {};
+    const stats = qb.stats || {
+      pass_yds: 0,
+      pass_td: 0,
+      rush_yds: 0,
+      rush_td: 0,
+      ints: 0,
+      pass_att: 0,
+      pass_cmp: 0
+    };
+
+    stats.pass_att = (stats.pass_att || 0) + 1;
+    if (isComplete) stats.pass_cmp = (stats.pass_cmp || 0) + 1;
+
+    return refQb.update({ stats });
+  }).catch(err => {
+    console.error(err);
+    alert("Error al registrar pase.");
+  });
+}
 
   window.addQbStatDelta = function(key, delta){
     qbPath().once("value").then(s=>{

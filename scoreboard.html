@@ -2,341 +2,392 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scoreboard - En Vivo (OVT)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Marcador en Vivo</title>
 
-  <!-- Firebase compat -->
+  <!-- Firebase compat (igual que admin) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
   <script src="firebase.js"></script>
 
   <style>
     :root{
-      --bg:#0b0b0b;
-      --card:#141414;
+      --bg:#000;
+      --panel:#111;
       --line:#2a2a2a;
-      --accent:#f6c000;
-      --text:#f5f5f5;
-      --muted:#bdbdbd;
+      --txt:#fff;
+      --muted:rgba(255,255,255,.75);
+      --gold:#f1c40f;
     }
-    body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--text); }
-    .wrap{ max-width:980px; margin:0 auto; padding:18px; }
-    .topline{ text-align:center; color:var(--muted); margin-bottom:10px; }
-    .card{
-      background:linear-gradient(180deg,#141414,#101010);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      box-shadow: 0 14px 50px rgba(0,0,0,.35);
-    }
-    .scoreRow{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; flex-wrap:wrap;
-      border-top:3px solid var(--accent);
-      padding-top:12px;
-    }
-    .teamBox{
-      flex:1 1 280px;
-      border-radius:14px;
-      padding:14px;
-      text-align:center;
-      font-weight:800;
-      font-size:22px;
-      color:#fff;
-      position:relative;
-    }
-    .pos{ font-size:14px; opacity:.95; margin-top:8px; font-weight:700; }
-    .centerScore{
-      flex:0 0 160px;
-      text-align:center;
-      font-size:44px;
-      font-weight:900;
-      letter-spacing:1px;
-    }
-    .status{
-      text-align:center;
-      margin:14px 0 8px;
-      font-size:22px;
-      font-weight:800;
-    }
-    .tabs{ display:flex; gap:10px; justify-content:center; margin:16px 0 10px; }
-    .tabBtn{
-      background:#121212;
-      border:1px solid var(--line);
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:800;
-      min-width:140px;
-    }
-    .tabBtn.active{ border-color:var(--accent); }
-    .panel{ display:none; }
-    .panel.active{ display:block; }
 
-    .timeline{
-      margin-top:12px;
-      background:#121212;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--txt);
+      font-family: Arial, sans-serif;
+      padding:16px;
     }
-    .tlItem{
-      padding:10px 6px;
-      border-bottom:1px solid #222;
+
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+    }
+
+    /* Tabs */
+    .tabs{
+      display:flex;
+      gap:10px;
+      border-bottom:2px solid var(--line);
+      margin-bottom:14px;
+    }
+    .tab{
+      background:transparent;
+      color:var(--muted);
+      border:0;
+      font-size:16px;
+      padding:10px 12px;
+      cursor:pointer;
+      border-bottom:3px solid transparent;
+    }
+    .tab.active{
+      color:var(--txt);
+      border-bottom:3px solid var(--gold);
+    }
+
+    /* Header (Lugar + Fecha) */
+    .meta{
+      text-align:center;
+      color:var(--muted);
+      margin:10px 0 8px;
       font-size:16px;
     }
-    .tlItem:last-child{ border-bottom:none; }
 
-    /* Poll bar */
-    .pollCard{
-      margin-top:12px;
-      background:#121212;
+    /* Scoreboard bar */
+    .scorebar{
+      background:var(--panel);
       border:1px solid var(--line);
       border-radius:14px;
-      padding:12px;
+      padding:14px;
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap:14px;
+      align-items:center;
+      box-shadow: 0 6px 25px rgba(0,0,0,.35);
     }
-    .bar{
+
+    .teamCard{
+      border-radius:12px;
+      padding:12px 14px;
       display:flex;
-      width:100%;
-      height:18px;
-      border-radius:999px;
+      align-items:center;
+      justify-content:space-between;
+      min-height:74px;
+      position:relative;
       overflow:hidden;
-      border:1px solid #2a2a2a;
-      background:#0e0e0e;
+    }
+
+    .teamName{
+      font-size:20px;
+      font-weight:800;
+      line-height:1.1;
+      text-transform: none;
+      max-width:70%;
+      word-break: break-word;
+    }
+
+    .teamScore{
+      font-size:32px;
+      font-weight:900;
+      min-width:54px;
+      text-align:right;
+    }
+
+    .possessionBadge{
+      position:absolute;
+      bottom:8px;
+      right:10px;
+      font-size:13px;
+      font-weight:700;
+      opacity:.92;
+      background:rgba(0,0,0,.35);
+      padding:4px 8px;
+      border-radius:999px;
+      display:none;
+    }
+    .teamCard.possession .possessionBadge{ display:block; }
+
+    /* Center block */
+    .centerBlock{
+      text-align:center;
+      padding:8px 8px;
+    }
+    .centerBlock .dash{
+      font-size:34px;
+      font-weight:900;
+      opacity:.95;
+    }
+    .centerBlock .q{
+      margin-top:6px;
+      font-size:16px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    /* Timeline */
+    .timelineBox{
+      margin-top:16px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+    }
+    .timelineTitle{
+      font-size:18px;
+      font-weight:800;
+      margin:0 0 10px;
+    }
+    .timeline{
+      list-style:none;
+      padding:0;
+      margin:0;
+    }
+    .timeline li{
+      padding:10px 8px;
+      border-top:1px solid rgba(255,255,255,.08);
+      font-size:15px;
+      color:rgba(255,255,255,.92);
+    }
+    .timeline li:first-child{ border-top:0; }
+
+    /* Stats */
+    .statCard{
+      margin-top:14px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+    }
+    .statCard h2{
+      margin:0 0 8px;
+      font-size:18px;
+    }
+    .statLine{ margin:6px 0; color:rgba(255,255,255,.92); }
+    .muted{ color:var(--muted); }
+
+    /* History */
+    .historyRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
       margin-top:10px;
     }
-    .seg{ height:100%; }
-    .pollRow{
-      display:flex;
-      justify-content:space-between;
-      margin-top:8px;
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    .qbCard{
-      margin-top:12px;
-      background:#121212;
+    select, button{
+      padding:10px 12px;
+      border-radius:10px;
       border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
+      background:#1a1a1a;
+      color:var(--txt);
+      font-size:15px;
     }
-    .qbTitle{ font-size:18px; font-weight:900; margin-bottom:8px; }
-    .qbLine{ font-size:15px; margin:4px 0; }
+    button{ cursor:pointer; }
+    button.primary{
+      background: #222;
+      border-color: rgba(241,196,15,.35);
+    }
 
-    .watermark{
-      position: fixed;
-      right: 14px;
-      bottom: 10px;
-      width: 80px;
-      opacity: 0.15;
-      pointer-events:none;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
+    /* Mobile */
+    @media (max-width:720px){
+      .scorebar{
+        grid-template-columns: 1fr;
+      }
+      .centerBlock{
+        order:2;
+      }
+      .teamCard.home{ order:1; }
+      .teamCard.away{ order:3; }
+      .teamName{ font-size:18px; }
+      .teamScore{ font-size:30px; }
+      .centerBlock .dash{ font-size:30px; }
     }
   </style>
 </head>
 
 <body>
-  <img class="watermark" src="bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png" alt="OVT" />
+<div class="wrap">
 
-  <div class="wrap">
-    <div class="topline" id="meta">—</div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button id="tabScore" class="tab active" onclick="showTab('score')">Marcador</button>
+    <button id="tabStats" class="tab" onclick="showTab('stats')">Estadísticas</button>
+    <button id="tabHistory" class="tab" onclick="showTab('history')">Historial</button>
+  </div>
 
-    <div class="card">
-      <div class="scoreRow">
-        <div class="teamBox" id="homeBox">
-          <div id="homeName">Local</div>
-          <div class="pos" id="homePos"></div>
-        </div>
+  <!-- VIEW: SCORE -->
+  <div id="viewScore">
+    <div class="meta" id="metaLine">—</div>
 
-        <div class="centerScore">
-          <span id="homeScore">0</span> - <span id="awayScore">0</span>
-        </div>
-
-        <div class="teamBox" id="awayBox">
-          <div id="awayName">Visitante</div>
-          <div class="pos" id="awayPos"></div>
-        </div>
+    <div class="scorebar">
+      <div id="homeCard" class="teamCard home">
+        <div class="teamName" id="homeName">Local</div>
+        <div class="teamScore" id="homeScore">0</div>
+        <div class="possessionBadge" id="homePoss">Posesión →</div>
       </div>
 
-      <div class="status" id="status">Cuarto: 1Q</div>
-
-      <div class="tabs">
-        <button class="tabBtn active" onclick="showTab('tab_score')">Marcador</button>
-        <button class="tabBtn" onclick="showTab('tab_stats')">Estadísticas</button>
+      <div class="centerBlock">
+        <div class="dash">-</div>
+        <div class="q" id="quarterLine">Cuarto: —</div>
       </div>
 
-      <div class="panel active" id="tab_score">
-        <div class="pollCard" id="pollCard" style="display:none;">
-          <div style="font-weight:900;">¿Quién ganará?</div>
-          <div class="bar">
-            <div class="seg" id="segHome" style="width:50%;"></div>
-            <div class="seg" id="segAway" style="width:50%;"></div>
-          </div>
-          <div class="pollRow">
-            <div><span id="pollHomePct">50%</span> <span id="pollHomeName">Local</span></div>
-            <div><span id="pollAwayName">Visitante</span> <span id="pollAwayPct">50%</span></div>
-          </div>
-        </div>
-
-        <div class="timeline" id="timeline"></div>
+      <div id="awayCard" class="teamCard away">
+        <div class="teamName" id="awayName">Visitante</div>
+        <div class="teamScore" id="awayScore">0</div>
+        <div class="possessionBadge" id="awayPoss">← Posesión</div>
       </div>
+    </div>
 
-      <div class="panel" id="tab_stats">
-        <div class="qbCard" id="qbCard">
-          <div class="qbTitle" id="qbTitle">Estadísticas del QB</div>
-          <div class="qbLine" id="qbNameLine">Nombre: —</div>
-          <div class="qbLine" id="qbPassYds">Yds pase: 0</div>
-          <div class="qbLine" id="qbPassTd">TD pase: 0</div>
-          <div class="qbLine" id="qbInts">Intercepciones: 0</div>
-          <div class="qbLine" id="qbRushYds">Yds tierra: 0</div>
-          <div class="qbLine" id="qbRushTd">TD tierra: 0</div>
-        </div>
-      </div>
-
+    <div class="timelineBox">
+      <div class="timelineTitle">Crónica</div>
+      <ul class="timeline" id="timelineList"></ul>
     </div>
   </div>
 
+  <!-- VIEW: STATS -->
+  <div id="viewStats" style="display:none;">
+    <div class="statCard">
+      <h2 id="qbTitle">Estadísticas del QB</h2>
+      <div class="statLine" id="qbNameLine">Nombre: —</div>
+      <div class="statLine" id="qbCmpLine">CMP/ATT: 0/0 (0%)</div>
+
+      <div class="statLine" id="qbPassYds">Yds pase: 0</div>
+      <div class="statLine" id="qbPassTd">TD pase: 0</div>
+      <div class="statLine" id="qbInts">Intercepciones: 0</div>
+      <div class="statLine" id="qbRushYds">Yds tierra: 0</div>
+      <div class="statLine" id="qbRushTd">TD tierra: 0</div>
+
+      <div class="muted" style="margin-top:10px;font-size:13px;">
+        Estas estadísticas se actualizan en vivo desde el panel administrador.
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: HISTORY -->
+  <div id="viewHistory" style="display:none;">
+    <div class="statCard">
+      <h2>Historial</h2>
+      <div class="muted" style="font-size:13px;">
+        Selecciona un partido guardado para verlo aquí (solo lectura). No afecta el partido en vivo.
+      </div>
+
+      <div class="historyRow">
+        <select id="history_select" style="min-width:260px; max-width:520px;"></select>
+        <button class="primary" onclick="loadHistoryToViewer()">Ver partido</button>
+        <button onclick="backToLive()">Volver a en vivo</button>
+      </div>
+
+      <div id="history_hint" class="muted" style="margin-top:10px;font-size:13px;">
+        —
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <script>
-  function showTab(tab) {
-  document.getElementById("viewScore").style.display = (tab === "score") ? "block" : "none";
-  document.getElementById("viewStats").style.display = (tab === "stats") ? "block" : "none";
-  document.getElementById("viewHistory").style.display = (tab === "history") ? "block" : "none";
-
-  document.getElementById("tabScore").classList.toggle("active", tab === "score");
-  document.getElementById("tabStats").classList.toggle("active", tab === "stats");
-  document.getElementById("tabHistory").classList.toggle("active", tab === "history");
-}
-
-// ===== Historial (solo lectura) =====
-const refHistory = db.ref("history");
-let liveUnsub = null;      // para mantener “en vivo”
-let viewingHistoryKey = null;
-
-function startLiveMode() {
-  viewingHistoryKey = null;
-
-  // Si ya tenías un listener a game, déjalo como lo tienes.
-  // Aquí te doy una forma estándar: (si ya lo haces, no lo dupliques)
-  if (liveUnsub) liveUnsub.off();
-
-  liveUnsub = db.ref("game");
-  liveUnsub.on("value", snap => {
-    const data = snap.val() || {};
-    renderScoreboard(data, true);  // <- tu función actual que pinta marcador
-    renderStats(data, true);       // <- tu función actual que pinta stats
-  });
-}
-
-function backToLive() {
-  document.getElementById("history_hint").innerText = "Modo en vivo activo.";
-  startLiveMode();
-  showTab("score");
-}
-
-// Llenar el select con partidos del historial
-refHistory.on("value", snap => {
-  const sel = document.getElementById("history_select");
-  if (!sel) return;
-
-  sel.innerHTML = "";
-  const data = snap.val() || {};
-  const keys = Object.keys(data).sort((a,b) => Number(b) - Number(a));
-
-  if (keys.length === 0) {
-    sel.innerHTML = `<option value="">(No hay juegos guardados)</option>`;
-    return;
-  }
-
-  for (const k of keys) {
-    const g = data[k] || {};
-    const home = g.team_home || "Local";
-    const away = g.team_away || "Visitante";
-    const sh = (g.score_home ?? 0);
-    const sa = (g.score_away ?? 0);
-    const fecha = g.date ? ` • ${g.date}` : "";
-    sel.innerHTML += `<option value="${k}">${home} ${sh} - ${sa} ${away}${fecha}</option>`;
-  }
-});
-
-// Ver un partido del historial SIN sobreescribir game
-function loadHistoryToViewer() {
-  const key = document.getElementById("history_select").value;
-  if (!key) return alert("No hay juego seleccionado.");
-
-  viewingHistoryKey = key;
-  document.getElementById("history_hint").innerText = "Viendo partido guardado (solo lectura).";
-
-  // Detener live listener para que no “pise” la vista
-  if (liveUnsub) liveUnsub.off();
-
-  refHistory.child(key).once("value").then(snap => {
-    const data = snap.val();
-    if (!data) return alert("No se encontró ese juego en historial.");
-    renderScoreboard(data, false);
-    renderStats(data, false);
-    showTab("score");
-  });
-}
-
-  function showTab(id){
-    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-    document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-    const btn = Array.from(document.querySelectorAll(".tabBtn")).find(x => (id==="tab_score" ? x.textContent.includes("Marcador") : x.textContent.includes("Estadísticas")));
-    if(btn) btn.classList.add("active");
-  }
-
+  // ===== Firebase refs =====
+  const refGame = db.ref("game");
   const refTeams = db.ref("teams");
-  const refGame  = db.ref("game");
+  const refHistory = db.ref("history");
 
-  let TEAMS = {};
+  // Cache de colores por equipo
+  const teamColors = {};
 
   refTeams.on("value", snap => {
-    TEAMS = snap.val() || {};
+    const teams = snap.val() || {};
+    for (const name in teams){
+      teamColors[name] = teams[name]?.color || "#444";
+    }
   });
 
-  function setTeamBox(boxId, nameElId, posElId, teamName, possession, side){
-    const box = document.getElementById(boxId);
-    const nameEl = document.getElementById(nameElId);
-    const posEl = document.getElementById(posElId);
+  // ===== Tabs =====
+  function showTab(tab) {
+    document.getElementById("viewScore").style.display = (tab === "score") ? "block" : "none";
+    document.getElementById("viewStats").style.display = (tab === "stats") ? "block" : "none";
+    document.getElementById("viewHistory").style.display = (tab === "history") ? "block" : "none";
 
-    nameEl.textContent = teamName || (side==="home" ? "Local" : "Visitante");
+    document.getElementById("tabScore").classList.toggle("active", tab === "score");
+    document.getElementById("tabStats").classList.toggle("active", tab === "stats");
+    document.getElementById("tabHistory").classList.toggle("active", tab === "history");
+  }
 
-    const color = TEAMS?.[teamName]?.color || (side==="home" ? "#2b6cb0" : "#0b2a7a");
-    box.style.background = color;
+  // ===== Helper =====
+  function safeText(x){ return (x === null || x === undefined || x === "") ? "—" : String(x); }
 
-    if(possession === side){
-      posEl.textContent = (side==="home" ? "← Posesión" : "Posesión →");
-    }else{
-      posEl.textContent = "";
+  function paintTeamCard(side, teamName, score, possessionSide){
+    const isHome = (side === "home");
+    const card = document.getElementById(isHome ? "homeCard" : "awayCard");
+    const nameEl = document.getElementById(isHome ? "homeName" : "awayName");
+    const scoreEl = document.getElementById(isHome ? "homeScore" : "awayScore");
+
+    nameEl.textContent = safeText(teamName === "—" ? (isHome ? "Local" : "Visitante") : teamName);
+    scoreEl.textContent = (score ?? 0);
+
+    const color = teamColors[teamName] || (isHome ? "#1b5" : "#15b") || "#444";
+    card.style.background = color;
+
+    // Posesión
+    card.classList.toggle("possession", possessionSide === side);
+  }
+
+  function renderMeta(data){
+    const loc = safeText(data.location);
+    const date = safeText(data.date);
+    const meta = (loc === "—" && date === "—") ? "—" : `${loc} • ${date}`;
+    document.getElementById("metaLine").textContent = meta;
+  }
+
+  function renderQuarter(data){
+    const finished = !!data.finished;
+    if (finished){
+      document.getElementById("quarterLine").textContent = "PARTIDO FINALIZADO";
+    } else {
+      document.getElementById("quarterLine").textContent = `Cuarto: ${safeText(data.quarter)}`;
     }
   }
 
-  function renderTimeline(tl){
-    const wrap = document.getElementById("timeline");
-    wrap.innerHTML = "";
-    const arr = Array.isArray(tl) ? tl : [];
-    if(arr.length===0){
-      wrap.innerHTML = `<div class="tlItem" style="opacity:.8;">Sin jugadas registradas todavía.</div>`;
+  function renderTimeline(data){
+    const list = document.getElementById("timelineList");
+    list.innerHTML = "";
+    const tl = data.timeline || [];
+    if (!tl.length){
+      list.innerHTML = `<li class="muted">Sin jugadas registradas todavía.</li>`;
       return;
     }
-    arr.slice().reverse().forEach(item=>{
-      const div = document.createElement("div");
-      div.className = "tlItem";
-      div.textContent = item;
-      wrap.appendChild(div);
+    // Mostrar en orden (como se fue agregando)
+    tl.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
     });
+    // Auto-scroll al final (última jugada visible)
+    list.parentElement.scrollTop = list.parentElement.scrollHeight;
+  }
+
+  // ===== QB Stats =====
+  function calcCmpPct(cmp, att){
+    if(!att) return "0%";
+    return ((cmp / att) * 100).toFixed(1) + "%";
   }
 
   function renderQB(qb){
     const title = document.getElementById("qbTitle");
     const nameLine = document.getElementById("qbNameLine");
+    const cmpLine = document.getElementById("qbCmpLine");
 
     if(!qb){
       title.textContent = "Estadísticas del QB";
       nameLine.textContent = "Nombre: —";
+      cmpLine.textContent = "CMP/ATT: 0/0 (0%)";
       document.getElementById("qbPassYds").textContent = "Yds pase: 0";
       document.getElementById("qbPassTd").textContent = "TD pase: 0";
       document.getElementById("qbInts").textContent = "Intercepciones: 0";
@@ -349,132 +400,122 @@ function loadHistoryToViewer() {
     const name = qb.name || "—";
     const st = qb.stats || {};
 
+    const cmp = st.pass_cmp || 0;
+    const att = st.pass_att || 0;
+    const pct = calcCmpPct(cmp, att);
+
     title.textContent = `Estadísticas del QB de ${team}`;
     nameLine.textContent = `Nombre: ${name}`;
+    cmpLine.textContent = `CMP/ATT: ${cmp}/${att} (${pct})`;
+
     document.getElementById("qbPassYds").textContent = `Yds pase: ${st.pass_yds || 0}`;
     document.getElementById("qbPassTd").textContent = `TD pase: ${st.pass_td || 0}`;
     document.getElementById("qbInts").textContent = `Intercepciones: ${st.ints || 0}`;
     document.getElementById("qbRushYds").textContent = `Yds tierra: ${st.rush_yds || 0}`;
     document.getElementById("qbRushTd").textContent = `TD tierra: ${st.rush_td || 0}`;
   }
-const qb = (data.players && data.players.qb) ? data.players.qb : null;
-const s = qb?.stats || {};
-const cmp = s.pass_cmp || 0;
-const att = s.pass_att || 0;
-const pct = calcCmpPct(cmp, att);
 
-// ejemplo de salida:
-qbStatsBox.innerHTML = `
-  <b>${qb?.team || ""} - QB</b><br>
-  Nombre: ${qb?.name || "-"}<br>
-  CMP/ATT: ${cmp}/${att} (${pct})<br>
-  Yds pase: ${s.pass_yds || 0}<br>
-  TD pase: ${s.pass_td || 0}<br>
-  INT: ${s.ints || 0}<br>
-  Yds tierra: ${s.rush_yds || 0}<br>
-  TD tierra: ${s.rush_td || 0}<br>
-`;
+  // ===== Live / History switch =====
+  let liveListenerOn = false;
 
-  function renderPoll(data){
-    const enabled = !!data.pollEnabled;
-    const card = document.getElementById("pollCard");
-    if(!enabled){
-      card.style.display = "none";
+  function startLive(){
+    if (liveListenerOn) return;
+    liveListenerOn = true;
+
+    refGame.on("value", snap => {
+      const data = snap.val() || {};
+
+      renderMeta(data);
+
+      const homeName = data.team_home || "Local";
+      const awayName = data.team_away || "Visitante";
+      paintTeamCard("home", homeName, data.score_home ?? 0, data.possession);
+      paintTeamCard("away", awayName, data.score_away ?? 0, data.possession);
+
+      renderQuarter(data);
+      renderTimeline(data);
+
+      const qb = (data.players && data.players.qb) ? data.players.qb : null;
+      renderQB(qb);
+    });
+  }
+
+  function stopLive(){
+    if (!liveListenerOn) return;
+    liveListenerOn = false;
+    refGame.off();
+  }
+
+  function backToLive(){
+    document.getElementById("history_hint").textContent = "Modo en vivo activo.";
+    stopLive();
+    startLive();
+    showTab("score");
+  }
+
+  // ===== Historial list =====
+  refHistory.on("value", snap => {
+    const sel = document.getElementById("history_select");
+    const hint = document.getElementById("history_hint");
+    const data = snap.val() || {};
+    const keys = Object.keys(data).sort((a,b)=>Number(b)-Number(a));
+
+    sel.innerHTML = "";
+    if (!keys.length){
+      sel.innerHTML = `<option value="">(No hay juegos guardados)</option>`;
+      hint.textContent = "No hay historial todavía.";
       return;
     }
 
-    const home = data.team_home || "Local";
-    const away = data.team_away || "Visitante";
+    keys.forEach(k=>{
+      const g = data[k] || {};
+      const home = g.team_home || "Local";
+      const away = g.team_away || "Visitante";
+      const sh = (g.score_home ?? 0);
+      const sa = (g.score_away ?? 0);
+      const fecha = g.date ? ` • ${g.date}` : "";
+      sel.innerHTML += `<option value="${k}">${home} ${sh} - ${sa} ${away}${fecha}</option>`;
+    });
 
-    const votes = data.pollVotes || {};
-    const homeVotes = Object.values(votes).filter(v => v === "home").length;
-    const awayVotes = Object.values(votes).filter(v => v === "away").length;
-    const total = homeVotes + awayVotes;
-
-    // Si no hay votos, 50/50 visual
-    let homePct = total ? Math.round((homeVotes/total)*100) : 50;
-    let awayPct = total ? 100 - homePct : 50;
-
-    // sin empate: si por rounding quedan iguales con total>0, empuja 1% al que va arriba
-    if(total && homePct === awayPct){
-      if(homeVotes > awayVotes){ homePct = 51; awayPct = 49; }
-      else if(awayVotes > homeVotes){ homePct = 49; awayPct = 51; }
-    }
-
-    document.getElementById("pollHomeName").textContent = home;
-    document.getElementById("pollAwayName").textContent = away;
-    document.getElementById("pollHomePct").textContent = `${homePct}%`;
-    document.getElementById("pollAwayPct").textContent = `${awayPct}%`;
-
-    const segH = document.getElementById("segHome");
-    const segA = document.getElementById("segAway");
-
-    segH.style.width = `${homePct}%`;
-    segA.style.width = `${awayPct}%`;
-
-    // Colores según equipo
-    const cH = TEAMS?.[home]?.color || "#2b6cb0";
-    const cA = TEAMS?.[away]?.color || "#0b2a7a";
-    segH.style.background = cH;
-    segA.style.background = cA;
-
-    card.style.display = "block";
-  }
-<!-- Tabs -->
-<div class="tabs">
-  <button id="tabScore" class="tab active" onclick="showTab('score')">Marcador</button>
-  <button id="tabStats" class="tab" onclick="showTab('stats')">Estadísticas</button>
-  <button id="tabHistory" class="tab" onclick="showTab('history')">Historial</button>
-</div>
-
-<!-- Secciones -->
-<div id="viewScore" class="view"></div>
-<div id="viewStats" class="view" style="display:none;"></div>
-
-<!-- NUEVO: Historial -->
-<div id="viewHistory" class="view" style="display:none;">
-  <h2 style="margin-top:8px;">Historial</h2>
-
-  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-    <select id="history_select" style="min-width:260px; max-width:520px;"></select>
-    <button onclick="loadHistoryToViewer()">Ver partido</button>
-    <button onclick="backToLive()">Volver a en vivo</button>
-  </div>
-
-  <p id="history_hint" style="opacity:.8; font-size:13px; margin-top:8px;">
-    Selecciona un partido guardado para verlo aquí sin afectar el partido en vivo.
-  </p>
-</div>
-
-  refGame.on("value", snap=>{
-    const data = snap.val() || {};
-
-    const home = data.team_home || "Local";
-    const away = data.team_away || "Visitante";
-
-    document.getElementById("meta").textContent =
-      `${data.location || "—"} • ${data.date || "—"}`;
-
-    document.getElementById("homeScore").textContent = data.score_home ?? 0;
-    document.getElementById("awayScore").textContent = data.score_away ?? 0;
-
-    setTeamBox("homeBox","homeName","homePos", home, data.possession, "home");
-    setTeamBox("awayBox","awayName","awayPos", away, data.possession, "away");
-
-    // Status: cuarto o final
-    if(data.finished){
-      document.getElementById("status").textContent = "Partido finalizado";
-    }else{
-      document.getElementById("status").textContent = `Cuarto: ${data.quarter || "1Q"}`;
-    }
-
-    renderTimeline(data.timeline || []);
-    renderPoll(data);
-
-    // QB
-    const qb = data.players?.qb || null;
-    renderQB(qb);
+    hint.textContent = "Selecciona un juego y presiona “Ver partido”.";
   });
+
+  function loadHistoryToViewer(){
+    const key = document.getElementById("history_select").value;
+    if (!key) return alert("No hay juego seleccionado.");
+
+    // Detenemos live para que no pise la vista
+    stopLive();
+
+    refHistory.child(key).once("value").then(snap=>{
+      const data = snap.val();
+      if (!data) return alert("No se encontró ese juego.");
+
+      renderMeta(data);
+
+      const homeName = data.team_home || "Local";
+      const awayName = data.team_away || "Visitante";
+      paintTeamCard("home", homeName, data.score_home ?? 0, data.possession);
+      paintTeamCard("away", awayName, data.score_away ?? 0, data.possession);
+
+      // en historial normalmente está finished:true
+      renderQuarter(data);
+      renderTimeline(data);
+
+      const qb = (data.players && data.players.qb) ? data.players.qb : null;
+      renderQB(qb);
+
+      document.getElementById("history_hint").textContent = "Viendo partido guardado (solo lectura).";
+      showTab("score");
+    }).catch(err=>{
+      console.error(err);
+      alert("Error al cargar historial.");
+    });
+  }
+
+  // Arrancar
+  startLive();
 </script>
+
 </body>
 </html>

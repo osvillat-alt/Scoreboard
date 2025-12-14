@@ -357,6 +357,23 @@ function loadHistoryToViewer() {
     document.getElementById("qbRushYds").textContent = `Yds tierra: ${st.rush_yds || 0}`;
     document.getElementById("qbRushTd").textContent = `TD tierra: ${st.rush_td || 0}`;
   }
+const qb = (data.players && data.players.qb) ? data.players.qb : null;
+const s = qb?.stats || {};
+const cmp = s.pass_cmp || 0;
+const att = s.pass_att || 0;
+const pct = calcCmpPct(cmp, att);
+
+// ejemplo de salida:
+qbStatsBox.innerHTML = `
+  <b>${qb?.team || ""} - QB</b><br>
+  Nombre: ${qb?.name || "-"}<br>
+  CMP/ATT: ${cmp}/${att} (${pct})<br>
+  Yds pase: ${s.pass_yds || 0}<br>
+  TD pase: ${s.pass_td || 0}<br>
+  INT: ${s.ints || 0}<br>
+  Yds tierra: ${s.rush_yds || 0}<br>
+  TD tierra: ${s.rush_td || 0}<br>
+`;
 
   function renderPoll(data){
     const enabled = !!data.pollEnabled;

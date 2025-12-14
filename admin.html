@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administrador del Marcador</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scoreboard - En Vivo (OVT)</title>
 
   <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
@@ -11,291 +11,347 @@
   <script src="firebase.js"></script>
 
   <style>
-    body {
-      background:#000;
-      color:white;
-      font-family:Arial, sans-serif;
-      margin:0;
-      padding:16px;
+    :root{
+      --bg:#0b0b0b;
+      --card:#141414;
+      --line:#2a2a2a;
+      --accent:#f6c000;
+      --text:#f5f5f5;
+      --muted:#bdbdbd;
     }
-    h1 { margin-top:0; margin-bottom:12px; }
-    button, select, input { padding:8px; margin:4px; font-size:15px; }
-    .section {
-      background:#111;
-      border:1px solid #444;
-      border-radius:10px;
-      margin-bottom:12px;
-      padding:6px 10px;
+    body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--text); }
+    .wrap{ max-width:980px; margin:0 auto; padding:18px; }
+    .topline{ text-align:center; color:var(--muted); margin-bottom:10px; }
+    .card{
+      background:linear-gradient(180deg,#141414,#101010);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 14px 50px rgba(0,0,0,.35);
     }
-    .section summary { font-weight:bold; cursor:pointer; outline:none; list-style:none; }
-    .section summary::-webkit-details-marker { display:none; }
-    .section summary::before { content:"▶ "; font-size:11px; }
-    .section[open] summary::before { content:"▼ "; }
-    .field-row { margin:4px 0; }
-    .field-row label { display:inline-block; width:110px; font-size:14px; }
-    hr { border-color:#333; }
+    .scoreRow{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; flex-wrap:wrap;
+      border-top:3px solid var(--accent);
+      padding-top:12px;
+    }
+    .teamBox{
+      flex:1 1 280px;
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+      font-weight:800;
+      font-size:22px;
+      color:#fff;
+      position:relative;
+    }
+    .pos{ font-size:14px; opacity:.95; margin-top:8px; font-weight:700; }
+    .centerScore{
+      flex:0 0 160px;
+      text-align:center;
+      font-size:44px;
+      font-weight:900;
+      letter-spacing:1px;
+    }
+    .status{
+      text-align:center;
+      margin:14px 0 8px;
+      font-size:22px;
+      font-weight:800;
+    }
+    .tabs{ display:flex; gap:10px; justify-content:center; margin:16px 0 10px; }
+    .tabBtn{
+      background:#121212;
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+      min-width:140px;
+    }
+    .tabBtn.active{ border-color:var(--accent); }
+    .panel{ display:none; }
+    .panel.active{ display:block; }
+
+    .timeline{
+      margin-top:12px;
+      background:#121212;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+    .tlItem{
+      padding:10px 6px;
+      border-bottom:1px solid #222;
+      font-size:16px;
+    }
+    .tlItem:last-child{ border-bottom:none; }
+
+    /* Poll bar */
+    .pollCard{
+      margin-top:12px;
+      background:#121212;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+    .bar{
+      display:flex;
+      width:100%;
+      height:18px;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #2a2a2a;
+      background:#0e0e0e;
+      margin-top:10px;
+    }
+    .seg{ height:100%; }
+    .pollRow{
+      display:flex;
+      justify-content:space-between;
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .qbCard{
+      margin-top:12px;
+      background:#121212;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+    .qbTitle{ font-size:18px; font-weight:900; margin-bottom:8px; }
+    .qbLine{ font-size:15px; margin:4px 0; }
+
+    .watermark{
+      position: fixed;
+      right: 14px;
+      bottom: 10px;
+      width: 110px;
+      opacity: 0.12;
+      pointer-events:none;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
+    }
   </style>
 </head>
 
 <body>
+  <img class="watermark" src="bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png" alt="OVT" />
 
-<h1>Panel Administrador (OVT)</h1>
+  <div class="wrap">
+    <div class="topline" id="meta">—</div>
 
-<!-- ==================== EQUIPOS ==================== -->
-<details class="section" open>
-  <summary>Equipos</summary>
-  <div class="field-row">
-    <label>Nombre:</label>
-    <input id="new_team_name" style="width:200px;">
+    <div class="card">
+      <div class="scoreRow">
+        <div class="teamBox" id="homeBox">
+          <div id="homeName">Local</div>
+          <div class="pos" id="homePos"></div>
+        </div>
+
+        <div class="centerScore">
+          <span id="homeScore">0</span> - <span id="awayScore">0</span>
+        </div>
+
+        <div class="teamBox" id="awayBox">
+          <div id="awayName">Visitante</div>
+          <div class="pos" id="awayPos"></div>
+        </div>
+      </div>
+
+      <div class="status" id="status">Cuarto: 1Q</div>
+
+      <div class="tabs">
+        <button class="tabBtn active" onclick="showTab('tab_score')">Marcador</button>
+        <button class="tabBtn" onclick="showTab('tab_stats')">Estadísticas</button>
+      </div>
+
+      <div class="panel active" id="tab_score">
+        <div class="pollCard" id="pollCard" style="display:none;">
+          <div style="font-weight:900;">¿Quién ganará?</div>
+          <div class="bar">
+            <div class="seg" id="segHome" style="width:50%;"></div>
+            <div class="seg" id="segAway" style="width:50%;"></div>
+          </div>
+          <div class="pollRow">
+            <div><span id="pollHomePct">50%</span> <span id="pollHomeName">Local</span></div>
+            <div><span id="pollAwayName">Visitante</span> <span id="pollAwayPct">50%</span></div>
+          </div>
+        </div>
+
+        <div class="timeline" id="timeline"></div>
+      </div>
+
+      <div class="panel" id="tab_stats">
+        <div class="qbCard" id="qbCard">
+          <div class="qbTitle" id="qbTitle">Estadísticas del QB</div>
+          <div class="qbLine" id="qbNameLine">Nombre: —</div>
+          <div class="qbLine" id="qbPassYds">Yds pase: 0</div>
+          <div class="qbLine" id="qbPassTd">TD pase: 0</div>
+          <div class="qbLine" id="qbInts">Intercepciones: 0</div>
+          <div class="qbLine" id="qbRushYds">Yds tierra: 0</div>
+          <div class="qbLine" id="qbRushTd">TD tierra: 0</div>
+        </div>
+      </div>
+
+    </div>
   </div>
-  <div class="field-row">
-    <label>Color:</label>
-    <input id="new_team_color" type="color" value="#6ec9ff">
-  </div>
-  <button onclick="addTeam()">Guardar Equipo</button>
-</details>
-
-<!-- ==================== PARTIDO ==================== -->
-<details class="section" open>
-  <summary>Configurar Partido</summary>
-
-  <div class="field-row">
-    <label>Equipo Local:</label>
-    <select id="team_home_select" style="width:220px;"></select>
-  </div>
-
-  <div class="field-row">
-    <label>Equipo Visitante:</label>
-    <select id="team_away_select" style="width:220px;"></select>
-  </div>
-
-  <div class="field-row">
-    <label>Fecha:</label>
-    <input id="date" style="width:220px;" placeholder="13/12/2025">
-  </div>
-
-  <div class="field-row">
-    <label>Lugar:</label>
-    <input id="location" style="width:220px;" placeholder="Deportiva Gomez Palacio">
-  </div>
-
-  <div class="field-row">
-    <label>Cuarto:</label>
-    <select id="quarter">
-      <option>1Q</option>
-      <option>2Q</option>
-      <option>3Q</option>
-      <option>4Q</option>
-      <option>OT</option>
-      <option>MT</option>
-    </select>
-    <span style="font-size:12px;opacity:0.8;">MT = Medio tiempo</span>
-  </div>
-</details>
-
-<!-- ==================== POSESIÓN Y ANOTACIONES ==================== -->
-<details class="section" open>
-  <summary>Posesión y Anotaciones</summary>
-
-  <h3>Posesión</h3>
-  <button onclick="setPossession('home')">Posesión Local</button>
-  <button onclick="setPossession('away')">Posesión Visitante</button>
-
-  <hr>
-
-  <h3>Anotaciones</h3>
-
-  <div style="border:1px solid #2b6cb0; border-radius:10px; padding:10px; margin-bottom:12px;">
-    <h4 style="margin:0 0 8px 0;">Local</h4>
-    <button onclick="addPoints('home',6,'TD_TIERA')">TD Tierra +6</button>
-    <button onclick="addPoints('home',6,'TD_AIRE')">TD Aire +6</button>
-    <button onclick="addPoints('home',1,'XP')">XP +1</button>
-    <button onclick="addPoints('home',2,'2PT_TIERA')">Conv 2 pts (tierra)</button>
-    <button onclick="addPoints('home',2,'2PT_AIRE')">Conv 2 pts (aire)</button>
-    <button onclick="addPoints('home',3,'FG')">FG +3</button>
-    <button onclick="addPoints('home',2,'SAFETY')">Safety +2</button>
-  </div>
-
-  <div style="border:1px solid #2b6cb0; border-radius:10px; padding:10px;">
-    <h4 style="margin:0 0 8px 0;">Visitante</h4>
-    <button onclick="addPoints('away',6,'TD_TIERA')">TD Tierra +6</button>
-    <button onclick="addPoints('away',6,'TD_AIRE')">TD Aire +6</button>
-    <button onclick="addPoints('away',1,'XP')">XP +1</button>
-    <button onclick="addPoints('away',2,'2PT_TIERA')">Conv 2 pts (tierra)</button>
-    <button onclick="addPoints('away',2,'2PT_AIRE')">Conv 2 pts (aire)</button>
-    <button onclick="addPoints('away',3,'FG')">FG +3</button>
-    <button onclick="addPoints('away',2,'SAFETY')">Safety Visitante +2</button>
-  </div>
-</details>
-
-<!-- ==================== CONTROL DEL PARTIDO / ENCUESTA ==================== -->
-<details class="section" open>
-  <summary>Control del Partido / Encuesta</summary>
-
-  <h3>Control del partido</h3>
-  <button style="background:red;color:white;" onclick="finishGame()">Finalizar y guardar en historial</button>
-  <button style="background:#555;color:white;" onclick="resetGame()">Reset sin guardar</button>
-
-  <hr>
-
-  <h3>Encuesta ¿Quién ganará?</h3>
-  <button onclick="setPollEnabled(true)">Activar encuesta</button>
-  <button onclick="setPollEnabled(false)">Desactivar encuesta</button>
-  <p id="poll_summary" style="font-size:13px;opacity:0.85;margin-top:6px;">
-    Encuesta: sin datos todavía.
-  </p>
-</details>
-
-<!-- ==================== ESTADÍSTICAS QB EN VIVO ==================== -->
-<details class="section" open>
-  <summary>Estadísticas QB (en vivo)</summary>
-
-  <div style="margin-bottom:10px;">
-    Nombre:
-    <input id="qb_name" style="width:180px;">
-    Equipo:
-    <input id="qb_team" style="width:160px;" value="Cyclones Navy">
-    Posición:
-    <input id="qb_position" style="width:60px;" value="QB">
-    <button onclick="saveQbInfo()">Guardar info QB</button>
-  </div>
-
-  <hr>
-
-  <div style="margin-bottom:8px;">
-    Yds de pase (jugada):
-    <input id="qb_pass_yds_delta" type="number" style="width:80px;">
-    <button onclick="addQbYards('pass')">Sumar</button>
-  </div>
-
-  <div style="margin-bottom:8px;">
-    Yds por tierra (jugada):
-    <input id="qb_rush_yds_delta" type="number" style="width:80px;">
-    <button onclick="addQbYards('rush')">Sumar</button>
-  </div>
-
-  <div style="margin-top:10px;">
-    <button onclick="addQbStatDelta('pass_td',1)">TD pase +1</button>
-    <button onclick="addQbStatDelta('rush_td',1)">TD carrera +1</button>
-    <button onclick="addQbStatDelta('ints',1)">Intercepción +1</button>
-  </div>
-</details>
-
-<!-- ==================== HISTORIAL ==================== -->
-<details class="section" open>
-  <summary>Historial</summary>
-
-  <select id="history_select" style="width:100%;max-width:520px;"></select>
-  <button onclick="loadFromHistory()">Cargar al marcador</button>
-</details>
 
 <script>
-  // ================== REFERENCIAS FIREBASE ==================
-  const refTeams   = db.ref("teams");
-  const refGame    = db.ref("game");
-  const refHistory = db.ref("history");
-  const refQb      = refGame.child("players").child("qb");
-
-  // ================== EQUIPOS ==================
-  function addTeam() {
-    const name  = document.getElementById("new_team_name").value.trim();
-    const color = document.getElementById("new_team_color").value;
-
-    if (!name) return alert("Escribe un nombre de equipo.");
-
-    refTeams.child(name).set({ color })
-      .then(() => { document.getElementById("new_team_name").value = ""; })
-      .catch(err => { console.error(err); alert("Error al guardar equipo."); });
+  function showTab(id){
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    const btn = Array.from(document.querySelectorAll(".tabBtn")).find(x => (id==="tab_score" ? x.textContent.includes("Marcador") : x.textContent.includes("Estadísticas")));
+    if(btn) btn.classList.add("active");
   }
 
+  const refTeams = db.ref("teams");
+  const refGame  = db.ref("game");
+
+  let TEAMS = {};
+
   refTeams.on("value", snap => {
-    const teams = snap.val() || {};
-    const homeSel = document.getElementById("team_home_select");
-    const awaySel = document.getElementById("team_away_select");
-
-    homeSel.innerHTML = "";
-    awaySel.innerHTML = "";
-
-    Object.keys(teams).forEach(t => {
-      homeSel.innerHTML += `<option value="${t}">${t}</option>`;
-      awaySel.innerHTML += `<option value="${t}">${t}</option>`;
-    });
+    TEAMS = snap.val() || {};
   });
 
-  // ================== CONFIG PARTIDO (sync en vivo) ==================
-  let lastQuarter = null;
+  function setTeamBox(boxId, nameElId, posElId, teamName, possession, side){
+    const box = document.getElementById(boxId);
+    const nameEl = document.getElementById(nameElId);
+    const posEl = document.getElementById(posElId);
 
-  setInterval(() => {
-    const qSel  = document.getElementById("quarter").value || "1Q";
-    const home  = document.getElementById("team_home_select").value || "";
-    const away  = document.getElementById("team_away_select").value || "";
-    const date  = document.getElementById("date").value || "";
-    const place = document.getElementById("location").value || "";
+    nameEl.textContent = teamName || (side==="home" ? "Local" : "Visitante");
 
-    if (lastQuarter === null) lastQuarter = qSel;
+    const color = TEAMS?.[teamName]?.color || (side==="home" ? "#2b6cb0" : "#0b2a7a");
+    box.style.background = color;
 
-    refGame.update({
-      team_home: home,
-      team_away: away,
-      date:      date,
-      location:  place,
-      quarter:   qSel
+    if(possession === side){
+      posEl.textContent = (side==="home" ? "← Posesión" : "Posesión →");
+    }else{
+      posEl.textContent = "";
+    }
+  }
+
+  function renderTimeline(tl){
+    const wrap = document.getElementById("timeline");
+    wrap.innerHTML = "";
+    const arr = Array.isArray(tl) ? tl : [];
+    if(arr.length===0){
+      wrap.innerHTML = `<div class="tlItem" style="opacity:.8;">Sin jugadas registradas todavía.</div>`;
+      return;
+    }
+    arr.slice().reverse().forEach(item=>{
+      const div = document.createElement("div");
+      div.className = "tlItem";
+      div.textContent = item;
+      wrap.appendChild(div);
     });
-  }, 1500);
+  }
 
-  function setPossession(team) { refGame.update({ possession: team }); }
+  function renderQB(qb){
+    const title = document.getElementById("qbTitle");
+    const nameLine = document.getElementById("qbNameLine");
 
-  // ====== TU FUNCIÓN addPoints (la dejo igual a como venía en tu archivo) ======
-  // (AQUÍ pega tu addPoints completa + pools de frases si quieres mantenerlos)
-  // Por ahora dejo stub para evitar errores si faltó pegar algo.
-  // >>>>>> PEGA TU BLOQUE COMPLETO addPoints AQUÍ <<<<<<
-</script>
-
-<script>
-  // ================== HISTORIAL (YA NO ROMPE) ==================
-  refHistory.on("value", snap => {
-    const sel = document.getElementById("history_select");
-    sel.innerHTML = "";
-
-    const data = snap.val() || {};
-    const keys = Object.keys(data).sort((a,b) => Number(b) - Number(a));
-
-    if (keys.length === 0) {
-      sel.innerHTML = `<option value="">(No hay juegos en historial)</option>`;
+    if(!qb){
+      title.textContent = "Estadísticas del QB";
+      nameLine.textContent = "Nombre: —";
+      document.getElementById("qbPassYds").textContent = "Yds pase: 0";
+      document.getElementById("qbPassTd").textContent = "TD pase: 0";
+      document.getElementById("qbInts").textContent = "Intercepciones: 0";
+      document.getElementById("qbRushYds").textContent = "Yds tierra: 0";
+      document.getElementById("qbRushTd").textContent = "TD tierra: 0";
       return;
     }
 
-    for (const k of keys) {
-      const g = data[k] || {};
-      const home = g.team_home || "Local";
-      const away = g.team_away || "Visitante";
-      const sh = g.score_home ?? 0;
-      const sa = g.score_away ?? 0;
-      const fecha = g.date ? ` • ${g.date}` : "";
-      sel.innerHTML += `<option value="${k}">${home} ${sh} - ${sa} ${away}${fecha}</option>`;
-    }
-  });
+    const team = qb.team || "—";
+    const name = qb.name || "—";
+    const st = qb.stats || {};
 
-  function loadFromHistory() {
-    const key = document.getElementById("history_select").value;
-    if (!key) return alert("No hay juego seleccionado.");
-
-    if (!confirm("¿Cargar este juego al marcador actual? (Esto reemplaza el partido en vivo)")) return;
-
-    refHistory.child(key).once("value").then(snap => {
-      const g = snap.val();
-      if (!g) return alert("No se encontró ese juego en historial.");
-
-      const restored = { ...g, finished: false };
-      return refGame.set(restored);
-    }).then(() => {
-      alert("Juego cargado al marcador.");
-    }).catch(err => {
-      console.error(err);
-      alert("Error al cargar el juego.");
-    });
+    title.textContent = `Estadísticas del QB de ${team}`;
+    nameLine.textContent = `Nombre: ${name}`;
+    document.getElementById("qbPassYds").textContent = `Yds pase: ${st.pass_yds || 0}`;
+    document.getElementById("qbPassTd").textContent = `TD pase: ${st.pass_td || 0}`;
+    document.getElementById("qbInts").textContent = `Intercepciones: ${st.ints || 0}`;
+    document.getElementById("qbRushYds").textContent = `Yds tierra: ${st.rush_yds || 0}`;
+    document.getElementById("qbRushTd").textContent = `TD tierra: ${st.rush_td || 0}`;
   }
-</script>
 
+  function renderPoll(data){
+    const enabled = !!data.pollEnabled;
+    const card = document.getElementById("pollCard");
+    if(!enabled){
+      card.style.display = "none";
+      return;
+    }
+
+    const home = data.team_home || "Local";
+    const away = data.team_away || "Visitante";
+
+    const votes = data.pollVotes || {};
+    const homeVotes = Object.values(votes).filter(v => v === "home").length;
+    const awayVotes = Object.values(votes).filter(v => v === "away").length;
+    const total = homeVotes + awayVotes;
+
+    // Si no hay votos, 50/50 visual
+    let homePct = total ? Math.round((homeVotes/total)*100) : 50;
+    let awayPct = total ? 100 - homePct : 50;
+
+    // sin empate: si por rounding quedan iguales con total>0, empuja 1% al que va arriba
+    if(total && homePct === awayPct){
+      if(homeVotes > awayVotes){ homePct = 51; awayPct = 49; }
+      else if(awayVotes > homeVotes){ homePct = 49; awayPct = 51; }
+    }
+
+    document.getElementById("pollHomeName").textContent = home;
+    document.getElementById("pollAwayName").textContent = away;
+    document.getElementById("pollHomePct").textContent = `${homePct}%`;
+    document.getElementById("pollAwayPct").textContent = `${awayPct}%`;
+
+    const segH = document.getElementById("segHome");
+    const segA = document.getElementById("segAway");
+
+    segH.style.width = `${homePct}%`;
+    segA.style.width = `${awayPct}%`;
+
+    // Colores según equipo
+    const cH = TEAMS?.[home]?.color || "#2b6cb0";
+    const cA = TEAMS?.[away]?.color || "#0b2a7a";
+    segH.style.background = cH;
+    segA.style.background = cA;
+
+    card.style.display = "block";
+  }
+
+  refGame.on("value", snap=>{
+    const data = snap.val() || {};
+
+    const home = data.team_home || "Local";
+    const away = data.team_away || "Visitante";
+
+    document.getElementById("meta").textContent =
+      `${data.location || "—"} • ${data.date || "—"}`;
+
+    document.getElementById("homeScore").textContent = data.score_home ?? 0;
+    document.getElementById("awayScore").textContent = data.score_away ?? 0;
+
+    setTeamBox("homeBox","homeName","homePos", home, data.possession, "home");
+    setTeamBox("awayBox","awayName","awayPos", away, data.possession, "away");
+
+    // Status: cuarto o final
+    if(data.finished){
+      document.getElementById("status").textContent = "Partido finalizado";
+    }else{
+      document.getElementById("status").textContent = `Cuarto: ${data.quarter || "1Q"}`;
+    }
+
+    renderTimeline(data.timeline || []);
+    renderPoll(data);
+
+    // QB
+    const qb = data.players?.qb || null;
+    renderQB(qb);
+  });
+</script>
 </body>
 </html>

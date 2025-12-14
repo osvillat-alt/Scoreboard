@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scoreboard - En Vivo (OVT)</title>
+  <title>Admin - Scoreboard OVT</title>
 
   <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
@@ -13,123 +13,99 @@
   <style>
     :root{
       --bg:#0b0b0b;
-      --card:#141414;
-      --line:#2a2a2a;
+      --card:#151515;
+      --card2:#1b1b1b;
+      --line:#2b2b2b;
       --accent:#f6c000;
+      --blue:#2b6cb0;
       --text:#f5f5f5;
       --muted:#bdbdbd;
+      --btn:#e9e9e9;
+      --btnText:#111;
+      --danger:#d10000;
     }
-    body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--text); }
-    .wrap{ max-width:980px; margin:0 auto; padding:18px; }
-    .topline{ text-align:center; color:var(--muted); margin-bottom:10px; }
-    .card{
-      background:linear-gradient(180deg,#141414,#101010);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      box-shadow: 0 14px 50px rgba(0,0,0,.35);
-    }
-    .scoreRow{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; flex-wrap:wrap;
-      border-top:3px solid var(--accent);
-      padding-top:12px;
-    }
-    .teamBox{
-      flex:1 1 280px;
-      border-radius:14px;
-      padding:14px;
-      text-align:center;
-      font-weight:800;
-      font-size:22px;
-      color:#fff;
-      position:relative;
-    }
-    .pos{ font-size:14px; opacity:.95; margin-top:8px; font-weight:700; }
-    .centerScore{
-      flex:0 0 160px;
-      text-align:center;
-      font-size:44px;
-      font-weight:900;
-      letter-spacing:1px;
-    }
-    .status{
-      text-align:center;
-      margin:14px 0 8px;
-      font-size:22px;
-      font-weight:800;
-    }
-    .tabs{ display:flex; gap:10px; justify-content:center; margin:16px 0 10px; }
-    .tabBtn{
-      background:#121212;
-      border:1px solid var(--line);
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:800;
-      min-width:140px;
-    }
-    .tabBtn.active{ border-color:var(--accent); }
-    .panel{ display:none; }
-    .panel.active{ display:block; }
+    body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--text); padding:18px; }
+    h1{ margin:0 0 10px 0; font-size:26px; }
+    .wrap{ max-width:980px; margin:0 auto; }
 
-    .timeline{
-      margin-top:12px;
-      background:#121212;
+    details{
+      background: linear-gradient(180deg, var(--card), var(--card2));
       border:1px solid var(--line);
       border-radius:14px;
-      padding:12px;
-    }
-    .tlItem{
-      padding:10px 6px;
-      border-bottom:1px solid #222;
-      font-size:16px;
-    }
-    .tlItem:last-child{ border-bottom:none; }
-
-    /* Poll bar */
-    .pollCard{
-      margin-top:12px;
-      background:#121212;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-    }
-    .bar{
-      display:flex;
-      width:100%;
-      height:18px;
-      border-radius:999px;
+      margin:12px 0;
       overflow:hidden;
-      border:1px solid #2a2a2a;
-      background:#0e0e0e;
-      margin-top:10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
     }
-    .seg{ height:100%; }
-    .pollRow{
+    summary{
+      cursor:pointer;
+      list-style:none;
+      padding:14px 16px;
       display:flex;
+      align-items:center;
       justify-content:space-between;
-      margin-top:8px;
-      font-size:13px;
-      color:var(--muted);
+      font-size:18px;
+      user-select:none;
     }
+    summary::-webkit-details-marker{ display:none; }
+    .sumRight{ opacity:.8; font-size:14px; }
+    .content{ padding:14px 16px 16px; border-top:1px solid var(--line); }
 
-    .qbCard{
-      margin-top:12px;
-      background:#121212;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .col{ flex:1 1 260px; }
+
+    label{ display:block; font-size:13px; color:var(--muted); margin:10px 0 6px; }
+    input, select, button, textarea{
+      width:100%;
+      box-sizing:border-box;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #333;
+      background:#0f0f0f;
+      color:var(--text);
+      font-size:16px;
+      outline:none;
     }
-    .qbTitle{ font-size:18px; font-weight:900; margin-bottom:8px; }
-    .qbLine{ font-size:15px; margin:4px 0; }
+    select{ background:#0f0f0f; }
+    textarea{ min-height:80px; resize:vertical; }
+
+    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .btnRow button{
+      width:auto;
+      background:var(--btn);
+      color:var(--btnText);
+      border:none;
+      cursor:pointer;
+      font-weight:700;
+      border-radius:10px;
+      padding:10px 14px;
+      transition:.15s;
+    }
+    .btnRow button:hover{ transform: translateY(-1px); }
+    .btnSmall{ padding:9px 12px !important; font-size:14px !important; }
+    .danger{ background:var(--danger)!important; color:white!important; }
+    .mutedBtn{ background:#5a5a5a!important; color:#fff!important; }
+
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:740px){ .grid2{ grid-template-columns:1fr; } }
+
+    .panel{
+      border:1px solid var(--blue);
+      border-radius:12px;
+      padding:12px;
+      background: rgba(25,25,25,.6);
+    }
+    .panel h3{ margin:0 0 10px; font-size:18px; }
+    .scoreBtns{ display:flex; flex-wrap:wrap; gap:10px; }
+    .scoreBtns button{ width:auto; min-width:140px; }
+
+    .hint{ font-size:13px; opacity:.85; margin-top:8px; }
+    .warn{ color:#ffcc66; font-size:13px; margin-top:8px; }
 
     .watermark{
       position: fixed;
       right: 14px;
       bottom: 10px;
-      width: 110px;
+      width: 92px;
       opacity: 0.12;
       pointer-events:none;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
@@ -139,219 +115,678 @@
 
 <body>
   <img class="watermark" src="bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png" alt="OVT" />
-
   <div class="wrap">
-    <div class="topline" id="meta">—</div>
+    <h1>Panel Administrador (OVT)</h1>
 
-    <div class="card">
-      <div class="scoreRow">
-        <div class="teamBox" id="homeBox">
-          <div id="homeName">Local</div>
-          <div class="pos" id="homePos"></div>
-        </div>
-
-        <div class="centerScore">
-          <span id="homeScore">0</span> - <span id="awayScore">0</span>
-        </div>
-
-        <div class="teamBox" id="awayBox">
-          <div id="awayName">Visitante</div>
-          <div class="pos" id="awayPos"></div>
-        </div>
-      </div>
-
-      <div class="status" id="status">Cuarto: 1Q</div>
-
-      <div class="tabs">
-        <button class="tabBtn active" onclick="showTab('tab_score')">Marcador</button>
-        <button class="tabBtn" onclick="showTab('tab_stats')">Estadísticas</button>
-      </div>
-
-      <div class="panel active" id="tab_score">
-        <div class="pollCard" id="pollCard" style="display:none;">
-          <div style="font-weight:900;">¿Quién ganará?</div>
-          <div class="bar">
-            <div class="seg" id="segHome" style="width:50%;"></div>
-            <div class="seg" id="segAway" style="width:50%;"></div>
+    <details open>
+      <summary>
+        <span>Equipos</span>
+        <span class="sumRight">Agregar / editar colores</span>
+      </summary>
+      <div class="content">
+        <div class="row">
+          <div class="col">
+            <label>Nombre del equipo</label>
+            <input id="new_team_name" placeholder="Ej: Cyclones Blue" />
           </div>
-          <div class="pollRow">
-            <div><span id="pollHomePct">50%</span> <span id="pollHomeName">Local</span></div>
-            <div><span id="pollAwayName">Visitante</span> <span id="pollAwayPct">50%</span></div>
+          <div class="col">
+            <label>Color</label>
+            <input id="new_team_color" type="color" value="#2b6cb0" />
           </div>
         </div>
-
-        <div class="timeline" id="timeline"></div>
+        <div class="btnRow">
+          <button onclick="addTeam()">Guardar equipo</button>
+        </div>
+        <div class="hint">Los equipos quedan guardados en <b>teams/</b>.</div>
       </div>
+    </details>
 
-      <div class="panel" id="tab_stats">
-        <div class="qbCard" id="qbCard">
-          <div class="qbTitle" id="qbTitle">Estadísticas del QB</div>
-          <div class="qbLine" id="qbNameLine">Nombre: —</div>
-          <div class="qbLine" id="qbPassYds">Yds pase: 0</div>
-          <div class="qbLine" id="qbPassTd">TD pase: 0</div>
-          <div class="qbLine" id="qbInts">Intercepciones: 0</div>
-          <div class="qbLine" id="qbRushYds">Yds tierra: 0</div>
-          <div class="qbLine" id="qbRushTd">TD tierra: 0</div>
+    <details open>
+      <summary>
+        <span>Configurar partido</span>
+        <span class="sumRight">Local / Visitante / Fecha / Lugar</span>
+      </summary>
+      <div class="content">
+        <div class="row">
+          <div class="col">
+            <label>Equipo local</label>
+            <select id="team_home_select"></select>
+          </div>
+          <div class="col">
+            <label>Equipo visitante</label>
+            <select id="team_away_select"></select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Fecha</label>
+            <input id="date" placeholder="13/12/2025" />
+          </div>
+          <div class="col">
+            <label>Lugar</label>
+            <input id="location" placeholder="Deportiva Gómez Palacio" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Cuarto (secuencia obligatoria)</label>
+            <select id="quarter">
+              <option value="1Q">1Q</option>
+              <option value="2Q">2Q</option>
+              <option value="MT">MT (Medio Tiempo)</option>
+              <option value="3Q">3Q</option>
+              <option value="4Q">4Q</option>
+              <option value="OT">OT</option>
+            </select>
+            <div class="warn" id="quarter_warn" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="hint">Al volver a entrar al admin, se cargan estos datos desde <b>game/</b> automáticamente.</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span>Posesión</span>
+        <span class="sumRight">Flecha en scoreboard</span>
+      </summary>
+      <div class="content">
+        <div class="btnRow">
+          <button onclick="setPossession('home')">Local</button>
+          <button onclick="setPossession('away')">Visitante</button>
+          <button class="mutedBtn" onclick="setPossession(null)">Quitar</button>
         </div>
       </div>
+    </details>
 
-    </div>
+    <details open>
+      <summary>
+        <span>Anotaciones</span>
+        <span class="sumRight">Tierra / Aire / Conv 2</span>
+      </summary>
+      <div class="content">
+        <div class="grid2">
+          <div class="panel">
+            <h3>Anotaciones Local</h3>
+            <div class="scoreBtns">
+              <button onclick="addPoints('home',6,'TD_TIERA')">TD Tierra +6</button>
+              <button onclick="addPoints('home',6,'TD_AIRE')">TD Aire +6</button>
+              <button onclick="addPoints('home',1,'XP')">XP +1</button>
+              <button onclick="addPoints('home',2,'2PT_TIERA')">Conv 2 (tierra)</button>
+              <button onclick="addPoints('home',2,'2PT_AIRE')">Conv 2 (aire)</button>
+              <button onclick="addPoints('home',3,'FG')">FG +3</button>
+              <button onclick="addPoints('home',2,'SAFETY')">Safety +2</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Anotaciones Visitante</h3>
+            <div class="scoreBtns">
+              <button onclick="addPoints('away',6,'TD_TIERA')">TD Tierra +6</button>
+              <button onclick="addPoints('away',6,'TD_AIRE')">TD Aire +6</button>
+              <button onclick="addPoints('away',1,'XP')">XP +1</button>
+              <button onclick="addPoints('away',2,'2PT_TIERA')">Conv 2 (tierra)</button>
+              <button onclick="addPoints('away',2,'2PT_AIRE')">Conv 2 (aire)</button>
+              <button onclick="addPoints('away',3,'FG')">FG +3</button>
+              <button onclick="addPoints('away',2,'SAFETY')">Safety +2</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint">
+          Esto controla el <b>marcador</b> y el <b>timeline</b>.  
+          El QB se registra aparte (estadísticas por jugada).
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span>Estadísticas QB (Cyclones Navy)</span>
+        <span class="sumRight">Sumas rápidas por jugada</span>
+      </summary>
+      <div class="content">
+        <div class="row">
+          <div class="col">
+            <label>Nombre</label>
+            <input id="qb_name" placeholder="Ian Villalobos" />
+          </div>
+          <div class="col">
+            <label>Equipo (texto)</label>
+            <input id="qb_team" placeholder="Cyclones Navy" />
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:10px;">
+          <h3>Sumas por jugada (deltas)</h3>
+          <div class="row">
+            <div class="col">
+              <label>Yds pase (sumar)</label>
+              <input id="d_pass_yds" type="number" placeholder="Ej: 12" />
+              <div class="btnRow">
+                <button class="btnSmall" onclick="applyQbDelta('pass_yds', 'd_pass_yds')">Sumar</button>
+              </div>
+            </div>
+            <div class="col">
+              <label>Yds tierra (sumar)</label>
+              <input id="d_rush_yds" type="number" placeholder="Ej: 7" />
+              <div class="btnRow">
+                <button class="btnSmall" onclick="applyQbDelta('rush_yds', 'd_rush_yds')">Sumar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label>TD pase (+1)</label>
+              <div class="btnRow">
+                <button class="btnSmall" onclick="addQbStatDelta('pass_td', 1)">+1</button>
+              </div>
+            </div>
+            <div class="col">
+              <label>TD tierra (+1)</label>
+              <div class="btnRow">
+                <button class="btnSmall" onclick="addQbStatDelta('rush_td', 1)">+1</button>
+              </div>
+            </div>
+            <div class="col">
+              <label>Intercepciones (+1)</label>
+              <div class="btnRow">
+                <button class="btnSmall" onclick="addQbStatDelta('ints', 1)">+1</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="btnRow">
+            <button onclick="saveQbIdentity()">Guardar nombre/equipo</button>
+          </div>
+
+          <div class="hint">Se guarda en <b>game/players/qb</b>. El scoreboard lo lee en vivo.</div>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span>Encuesta</span>
+        <span class="sumRight">Activar / desactivar</span>
+      </summary>
+      <div class="content">
+        <div class="btnRow">
+          <button onclick="setPollEnabled(true)">Activar encuesta</button>
+          <button class="mutedBtn" onclick="setPollEnabled(false)">Desactivar encuesta</button>
+          <button class="mutedBtn" onclick="resetPollVotes()">Reiniciar votos</button>
+        </div>
+        <div class="hint">
+          En el scoreboard se muestra como barra de % por equipo (sin empate).
+        </div>
+      </div>
+    </details>
+
+    <details open>
+      <summary>
+        <span>Partido</span>
+        <span class="sumRight">Finalizar / Reset</span>
+      </summary>
+      <div class="content">
+        <div class="btnRow">
+          <button class="danger" onclick="finishGame()">Finalizar Partido (guarda en historial)</button>
+          <button class="mutedBtn" onclick="resetGame()">Reset sin guardar</button>
+        </div>
+        <div class="hint">Finalizar: mueve todo a <b>history/</b> y reinicia <b>game/</b> (incluye encuesta y stats QB).</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span>Historial</span>
+        <span class="sumRight">Restaurar un juego guardado</span>
+      </summary>
+      <div class="content">
+        <div class="row">
+          <div class="col">
+            <label>Selecciona un partido</label>
+            <select id="history_select"></select>
+          </div>
+          <div class="col" style="display:flex;align-items:flex-end;">
+            <button onclick="loadFromHistory()">Cargar al marcador</button>
+          </div>
+        </div>
+        <div class="hint">Esto reemplaza el partido actual en <b>game/</b> con el juego elegido del historial.</div>
+      </div>
+    </details>
+
   </div>
 
 <script>
-  function showTab(id){
-    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-    document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-    const btn = Array.from(document.querySelectorAll(".tabBtn")).find(x => (id==="tab_score" ? x.textContent.includes("Marcador") : x.textContent.includes("Estadísticas")));
-    if(btn) btn.classList.add("active");
+  // ====== Firebase refs ======
+  const refTeams   = db.ref("teams");
+  const refGame    = db.ref("game");
+  const refHistory = db.ref("history");
+
+  // ====== Helpers UI ======
+  function $(id){ return document.getElementById(id); }
+
+  // ====== Frases épicas ======
+  const FRASES_TD = [
+    "con una jugada explosiva que rompe la defensa.",
+    "tras una serie ofensiva perfecta que culmina en las diagonales.",
+    "con un acarreo poderoso que nadie pudo detener.",
+    "gracias a un pase preciso que encuentra a su receptor en la zona de anotación.",
+    "rematando una larga ofensiva que desgastó por completo a la defensa rival.",
+    "aprovechando un error defensivo para convertir seis puntos vitales.",
+    "con una jugada sorpresa que tomó desprevenida a la defensiva.",
+    "mostrando poder ofensivo y autoridad en la zona roja.",
+    "con una gran combinación por aire que termina en touchdown.",
+    "tras mover las cadenas con calma y ejecutar a la perfección en zona roja.",
+    "encendiendo al público con un touchdown espectacular.",
+    "demostrando sangre fría en tercera oportunidad cerca de la zona de anotación.",
+    "con una ofensiva rápida que recorrió el campo en pocos intentos.",
+    "aprovechando cada yarda para llegar a la zona prometida.",
+    "con un ataque terrestre contundente que abre el camino a seis puntos."
+  ];
+  const FRASES_FG = [
+    "con un gol de campo seguro que suma tres puntos al marcador.",
+    "aprovechando la oportunidad y eligiendo la vía segura de tres puntos.",
+    "con una patada precisa que pasa justo entre los postes.",
+    "que les permite acercarse en el marcador con un FG efectivo.",
+    "añadiendo tres puntos que podrían ser clave más adelante.",
+    "mostrando tranquilidad del pateador en un intento importante.",
+    "con un gol de campo que mantiene viva la ofensiva.",
+    "acortando la distancia con una patada bien ejecutada.",
+    "castigando la defensa rival con tres puntos desde la larga distancia.",
+    "tras quedarse cortos en zona roja pero capitalizando con un FG.",
+    "asegurando puntos en una serie que parecía perderse.",
+    "con una patada que mantiene la presión sobre el rival.",
+    "sumando de a poco pero sin dejar de anotar.",
+    "que mantiene el juego dentro de una posesión.",
+    "con un gol de campo que silencía momentáneamente a la afición rival."
+  ];
+  const FRASES_XP = [
+    "convirtiendo sin problemas el punto extra.",
+    "asegurando el punto adicional para completar la serie.",
+    "sumando un punto más que redondea la anotación.",
+    "con una patada sencilla pero importante para el marcador.",
+    "completando los siete puntos tras el touchdown.",
+    "mostrando seguridad total del pateador.",
+    "sumando un punto que podría marcar diferencia al final.",
+    "cerrando la ofensiva con el adicional bueno."
+  ];
+  const FRASES_SAFETY = [
+    "gracias a una defensa implacable que encierra al rival en su propia zona.",
+    "con una jugada defensiva enorme que termina en safety.",
+    "demostrando un front defensivo dominante que no da respiro.",
+    "con un safety que cambia la inercia del partido.",
+    "castigando a la ofensiva rival con una jugada espectacular detrás de la línea."
+  ];
+  const FRASES_2PT = [
+    "arriesgando con una conversión de dos puntos que sale perfecta.",
+    "demostrando agresividad ofensiva al ir por dos y conseguirlo.",
+    "sumando dos puntos que pueden marcar la diferencia en un cierre apretado.",
+    "rompiendo el guion con una jugada de dos puntos muy bien ejecutada.",
+    "mandando un mensaje claro: este equipo viene a ganar."
+  ];
+
+  function extraContexto({ esOT, esRemontada, esCerrado, esPaliza }) {
+    if (esOT) return " En un tiempo extra lleno de tensión, cada jugada cuenta al máximo.";
+    if (esRemontada) return " Esta jugada completa una gran remontada que cambia la historia del partido.";
+    if (esCerrado) return " El marcador sigue muy cerrado y cada punto pesa muchísimo.";
+    if (esPaliza) return " La ventaja sigue creciendo y el dominio es cada vez más claro.";
+    return "";
   }
 
-  const refTeams = db.ref("teams");
-  const refGame  = db.ref("game");
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)] || ""; }
 
-  let TEAMS = {};
+  // ====== Equipos ======
+  window.addTeam = function(){
+    const name = $("new_team_name").value.trim();
+    const color = $("new_team_color").value;
+    if(!name) return alert("Escribe un nombre primero.");
 
-  refTeams.on("value", snap => {
-    TEAMS = snap.val() || {};
+    refTeams.child(name).set({ color })
+      .then(()=>{ $("new_team_name").value=""; alert("Equipo guardado ✅"); })
+      .catch(e=>{ console.error(e); alert("Error al guardar equipo."); });
+  };
+
+  // ====== Cargar teams a selects + mantener selección guardada ======
+  refTeams.on("value", snap=>{
+    const teams = snap.val() || {};
+    const homeSel = $("team_home_select");
+    const awaySel = $("team_away_select");
+
+    const wantHome = homeSel.dataset.want ?? homeSel.value ?? "";
+    const wantAway = awaySel.dataset.want ?? awaySel.value ?? "";
+
+    homeSel.innerHTML = `<option value=""></option>`;
+    awaySel.innerHTML = `<option value=""></option>`;
+
+    Object.keys(teams).forEach(t=>{
+      homeSel.innerHTML += `<option value="${t}">${t}</option>`;
+      awaySel.innerHTML += `<option value="${t}">${t}</option>`;
+    });
+
+    homeSel.value = wantHome;
+    awaySel.value = wantAway;
   });
 
-  function setTeamBox(boxId, nameElId, posElId, teamName, possession, side){
-    const box = document.getElementById(boxId);
-    const nameEl = document.getElementById(nameElId);
-    const posEl = document.getElementById(posElId);
+  // ====== Admin recuerda config (hidrata desde game/) ======
+  let adminHydrated = false;
+  let lastQuarter = null;
 
-    nameEl.textContent = teamName || (side==="home" ? "Local" : "Visitante");
+  function hydrateAdminFromGame(data){
+    $("date").value = data.date || "";
+    $("location").value = data.location || "";
+    $("quarter").value = data.quarter || "1Q";
 
-    const color = TEAMS?.[teamName]?.color || (side==="home" ? "#2b6cb0" : "#0b2a7a");
-    box.style.background = color;
+    $("team_home_select").dataset.want = data.team_home || "";
+    $("team_away_select").dataset.want = data.team_away || "";
 
-    if(possession === side){
-      posEl.textContent = (side==="home" ? "← Posesión" : "Posesión →");
-    }else{
-      posEl.textContent = "";
-    }
-  }
-
-  function renderTimeline(tl){
-    const wrap = document.getElementById("timeline");
-    wrap.innerHTML = "";
-    const arr = Array.isArray(tl) ? tl : [];
-    if(arr.length===0){
-      wrap.innerHTML = `<div class="tlItem" style="opacity:.8;">Sin jugadas registradas todavía.</div>`;
-      return;
-    }
-    arr.slice().reverse().forEach(item=>{
-      const div = document.createElement("div");
-      div.className = "tlItem";
-      div.textContent = item;
-      wrap.appendChild(div);
-    });
-  }
-
-  function renderQB(qb){
-    const title = document.getElementById("qbTitle");
-    const nameLine = document.getElementById("qbNameLine");
-
-    if(!qb){
-      title.textContent = "Estadísticas del QB";
-      nameLine.textContent = "Nombre: —";
-      document.getElementById("qbPassYds").textContent = "Yds pase: 0";
-      document.getElementById("qbPassTd").textContent = "TD pase: 0";
-      document.getElementById("qbInts").textContent = "Intercepciones: 0";
-      document.getElementById("qbRushYds").textContent = "Yds tierra: 0";
-      document.getElementById("qbRushTd").textContent = "TD tierra: 0";
-      return;
+    // QB identity
+    const qb = data.players?.qb || null;
+    if(qb){
+      $("qb_name").value = qb.name || "";
+      $("qb_team").value = qb.team || "";
     }
 
-    const team = qb.team || "—";
-    const name = qb.name || "—";
-    const st = qb.stats || {};
-
-    title.textContent = `Estadísticas del QB de ${team}`;
-    nameLine.textContent = `Nombre: ${name}`;
-    document.getElementById("qbPassYds").textContent = `Yds pase: ${st.pass_yds || 0}`;
-    document.getElementById("qbPassTd").textContent = `TD pase: ${st.pass_td || 0}`;
-    document.getElementById("qbInts").textContent = `Intercepciones: ${st.ints || 0}`;
-    document.getElementById("qbRushYds").textContent = `Yds tierra: ${st.rush_yds || 0}`;
-    document.getElementById("qbRushTd").textContent = `TD tierra: ${st.rush_td || 0}`;
-  }
-
-  function renderPoll(data){
-    const enabled = !!data.pollEnabled;
-    const card = document.getElementById("pollCard");
-    if(!enabled){
-      card.style.display = "none";
-      return;
-    }
-
-    const home = data.team_home || "Local";
-    const away = data.team_away || "Visitante";
-
-    const votes = data.pollVotes || {};
-    const homeVotes = Object.values(votes).filter(v => v === "home").length;
-    const awayVotes = Object.values(votes).filter(v => v === "away").length;
-    const total = homeVotes + awayVotes;
-
-    // Si no hay votos, 50/50 visual
-    let homePct = total ? Math.round((homeVotes/total)*100) : 50;
-    let awayPct = total ? 100 - homePct : 50;
-
-    // sin empate: si por rounding quedan iguales con total>0, empuja 1% al que va arriba
-    if(total && homePct === awayPct){
-      if(homeVotes > awayVotes){ homePct = 51; awayPct = 49; }
-      else if(awayVotes > homeVotes){ homePct = 49; awayPct = 51; }
-    }
-
-    document.getElementById("pollHomeName").textContent = home;
-    document.getElementById("pollAwayName").textContent = away;
-    document.getElementById("pollHomePct").textContent = `${homePct}%`;
-    document.getElementById("pollAwayPct").textContent = `${awayPct}%`;
-
-    const segH = document.getElementById("segHome");
-    const segA = document.getElementById("segAway");
-
-    segH.style.width = `${homePct}%`;
-    segA.style.width = `${awayPct}%`;
-
-    // Colores según equipo
-    const cH = TEAMS?.[home]?.color || "#2b6cb0";
-    const cA = TEAMS?.[away]?.color || "#0b2a7a";
-    segH.style.background = cH;
-    segA.style.background = cA;
-
-    card.style.display = "block";
+    // lastQuarter para controlar secuencia y timeline
+    lastQuarter = (data.quarter || "1Q");
+    adminHydrated = true;
   }
 
   refGame.on("value", snap=>{
     const data = snap.val() || {};
+    hydrateAdminFromGame(data);
+  });
 
-    const home = data.team_home || "Local";
-    const away = data.team_away || "Visitante";
+  // ====== Guardar config al cambiar (ya NO setInterval) ======
+  function saveGameSettings(){
+    if(!adminHydrated) return;
 
-    document.getElementById("meta").textContent =
-      `${data.location || "—"} • ${data.date || "—"}`;
+    const qSel = $("quarter").value || "1Q";
+    const home = $("team_home_select").value || "";
+    const away = $("team_away_select").value || "";
+    const date = $("date").value || "";
+    const place = $("location").value || "";
 
-    document.getElementById("homeScore").textContent = data.score_home ?? 0;
-    document.getElementById("awayScore").textContent = data.score_away ?? 0;
+    refGame.update({ team_home:home, team_away:away, date, location:place, quarter:qSel });
+  }
 
-    setTeamBox("homeBox","homeName","homePos", home, data.possession, "home");
-    setTeamBox("awayBox","awayName","awayPos", away, data.possession, "away");
+  // ====== Secuencia de cuartos + timeline automático ======
+  const QUARTER_ORDER = ["1Q","2Q","MT","3Q","4Q","OT"];
+  function isNextQuarter(prev, next){
+    const i = QUARTER_ORDER.indexOf(prev);
+    const j = QUARTER_ORDER.indexOf(next);
+    if(i === -1 || j === -1) return true;
+    return j === i || j === i+1; // permitir quedarse igual o avanzar 1
+  }
 
-    // Status: cuarto o final
-    if(data.finished){
-      document.getElementById("status").textContent = "Partido finalizado";
-    }else{
-      document.getElementById("status").textContent = `Cuarto: ${data.quarter || "1Q"}`;
+  function quarterTransitionMessage(prev, next){
+    if(next === "MT") return `Termina el ${prev}. Entramos a medio tiempo.`;
+    if(prev === "MT") return `Termina el medio tiempo, comienza el ${next}.`;
+    return `Se termina el ${prev}. Comienza el ${next}.`;
+  }
+
+  $("team_home_select").addEventListener("change", saveGameSettings);
+  $("team_away_select").addEventListener("change", saveGameSettings);
+  $("date").addEventListener("input", saveGameSettings);
+  $("location").addEventListener("input", saveGameSettings);
+
+  $("quarter").addEventListener("change", async () => {
+    if(!adminHydrated) return;
+
+    const nextQ = $("quarter").value || "1Q";
+    const prevQ = lastQuarter || nextQ;
+
+    // Validación secuencia
+    if(!isNextQuarter(prevQ, nextQ)){
+      $("quarter_warn").style.display = "block";
+      $("quarter_warn").textContent = `Secuencia inválida: no puedes pasar de ${prevQ} a ${nextQ}.`;
+      $("quarter").value = prevQ;
+      return;
+    } else {
+      $("quarter_warn").style.display = "none";
     }
 
-    renderTimeline(data.timeline || []);
-    renderPoll(data);
-
-    // QB
-    const qb = data.players?.qb || null;
-    renderQB(qb);
+    if(nextQ !== prevQ){
+      const snap = await refGame.once("value");
+      const data = snap.val() || {};
+      const tl = data.timeline || [];
+      const msg = quarterTransitionMessage(prevQ, nextQ);
+      const nuevoTL = [...tl, msg];
+      await refGame.update({ quarter: nextQ, timeline: nuevoTL });
+      lastQuarter = nextQ;
+    } else {
+      saveGameSettings();
+    }
   });
+
+  // ====== Posesión ======
+  window.setPossession = function(team){
+    refGame.update({ possession: team });
+  };
+
+  // ====== Narrativa + anotaciones ======
+  window.addPoints = function(teamSide, pts, tipoKey){
+    refGame.once("value").then(snap=>{
+      const data = snap.val() || {};
+      const oldHome = data.score_home || 0;
+      const oldAway = data.score_away || 0;
+
+      const quarter = data.quarter || "1Q";
+      const nombreEquipo = teamSide === "home" ? (data.team_home || "Local") : (data.team_away || "Visitante");
+
+      let tipoCorto="", etiqueta="";
+      if(tipoKey==="TD_TIERA"){ tipoCorto="TD"; etiqueta="TD Tierra"; }
+      if(tipoKey==="TD_AIRE"){ tipoCorto="TD"; etiqueta="TD Aire"; }
+      if(tipoKey==="FG"){ tipoCorto="FG"; etiqueta="FG"; }
+      if(tipoKey==="XP"){ tipoCorto="XP"; etiqueta="XP"; }
+      if(tipoKey==="SAFETY"){ tipoCorto="Safety"; etiqueta="Safety"; }
+      if(tipoKey==="2PT_TIERA"){ tipoCorto="2PT"; etiqueta="Conv 2 pts (tierra)"; }
+      if(tipoKey==="2PT_AIRE"){ tipoCorto="2PT"; etiqueta="Conv 2 pts (aire)"; }
+
+      const newHome = teamSide==="home" ? oldHome + pts : oldHome;
+      const newAway = teamSide==="away" ? oldAway + pts : oldAway;
+
+      const diffNueva = Math.abs(newHome-newAway);
+      const ibaPerdiendo =
+        (teamSide==="home" && oldHome<oldAway) ||
+        (teamSide==="away" && oldAway<oldHome);
+      const ahoraVaGanando =
+        (teamSide==="home" && newHome>newAway) ||
+        (teamSide==="away" && newAway>newHome);
+
+      const esRemontada = ibaPerdiendo && ahoraVaGanando;
+      const esCerrado = diffNueva<=3;
+      const esPaliza = diffNueva>=20;
+      const esOT = quarter==="OT";
+
+      let pool=[];
+      if(tipoCorto==="TD") pool=FRASES_TD;
+      else if(tipoCorto==="FG") pool=FRASES_FG;
+      else if(tipoCorto==="XP") pool=FRASES_XP;
+      else if(tipoCorto==="2PT") pool=FRASES_2PT;
+      else if(tipoCorto==="Safety") pool=FRASES_SAFETY;
+
+      const fraseBase = `${quarter} • ${etiqueta} de ${nombreEquipo} (${pts} pts)`;
+      const frase = pick(pool);
+      const extra = extraContexto({ esOT, esRemontada, esCerrado, esPaliza });
+      const fraseCompleta = `${fraseBase} ${frase}${extra}`.trim();
+
+      const tl = data.timeline || [];
+      const nuevoTL = [...tl, fraseCompleta];
+
+      return refGame.update({
+        score_home: newHome,
+        score_away: newAway,
+        timeline: nuevoTL
+      });
+    }).catch(e=>{
+      console.error(e);
+      alert("Error al registrar anotación.");
+    });
+  };
+
+  // ====== QB stats (deltas rápidos) ======
+  function qbPath(){ return refGame.child("players/qb"); }
+
+  window.saveQbIdentity = function(){
+    const name = $("qb_name").value.trim();
+    const team = $("qb_team").value.trim();
+    qbPath().update({
+      name: name || "",
+      position: "QB",
+      team: team || "",
+      stats: {
+        pass_yds: 0,
+        pass_td: 0,
+        rush_yds: 0,
+        rush_td: 0,
+        ints: 0
+      }
+    }).then(()=>alert("QB guardado ✅"))
+      .catch(e=>{ console.error(e); alert("Error guardando QB."); });
+  };
+
+  window.addQbStatDelta = function(key, delta){
+    qbPath().once("value").then(s=>{
+      const qb = s.val() || {};
+      const stats = qb.stats || {};
+      const curr = Number(stats[key] || 0);
+      const next = curr + Number(delta);
+      return qbPath().child("stats/"+key).set(next);
+    }).catch(e=>console.error(e));
+  };
+
+  window.applyQbDelta = function(key, inputId){
+    const raw = $(inputId).value;
+    const delta = Number(raw || 0);
+    if(!delta) return;
+
+    $(inputId).value = "";
+    addQbStatDelta(key, delta);
+  };
+
+  // ====== Encuesta enable/disable + reset ======
+  window.setPollEnabled = function(enabled){
+    refGame.update({ pollEnabled: !!enabled }).then(()=>{
+      alert(enabled ? "Encuesta activada ✅" : "Encuesta desactivada ✅");
+    });
+  };
+
+  window.resetPollVotes = function(){
+    if(!confirm("¿Reiniciar votos de la encuesta?")) return;
+    refGame.child("pollVotes").remove().then(()=>alert("Votos reiniciados ✅"));
+  };
+
+  // ====== Reset / Finish ======
+  window.resetGame = function(){
+    if(!confirm("¿Resetear marcador sin guardar historial?")) return;
+    refGame.set({
+      team_home:"",
+      team_away:"",
+      date:"",
+      location:"",
+      quarter:"1Q",
+      score_home:0,
+      score_away:0,
+      possession:null,
+      timeline:[],
+      pollEnabled:false,
+      pollVotes:{},
+      players:{}
+    }).then(()=>alert("Marcador reseteado ✅"));
+  };
+
+  window.finishGame = function(){
+    refGame.once("value").then(snap=>{
+      const data = snap.val() || {};
+      const homeName = data.team_home || "Local";
+      const awayName = data.team_away || "Visitante";
+      const home = data.score_home || 0;
+      const away = data.score_away || 0;
+
+      const tl = data.timeline || [];
+      const finalMsg = `FINAL • El partido termina con marcador ${homeName} ${home} - ${away} ${awayName}.`;
+
+      const ts = Date.now();
+      const historyRef = refHistory.child(String(ts));
+
+      const historyData = {
+        ...data,
+        finished:true,
+        finishedAt:ts,
+        timeline:[...tl, finalMsg]
+      };
+
+      // guardar historial + reset game (incluye encuesta y qb)
+      return historyRef.set(historyData).then(()=>{
+        return refGame.set({
+          team_home:"",
+          team_away:"",
+          date:"",
+          location:"",
+          quarter:"1Q",
+          score_home:0,
+          score_away:0,
+          possession:null,
+          timeline:[],
+          pollEnabled:false,
+          pollVotes:{},
+          players:{}
+        });
+      }).then(()=>{
+        alert("Partido finalizado y guardado en historial ✅");
+      });
+    }).catch(e=>{
+      console.error(e);
+      alert("Error al finalizar partido.");
+    });
+  };
+
+  // ====== Historial dropdown + load ======
+  refHistory.on("value", snap=>{
+    const sel = $("history_select");
+    if(!sel) return;
+
+    sel.innerHTML = "";
+    const data = snap.val() || {};
+    const keys = Object.keys(data).sort((a,b)=>Number(b)-Number(a));
+
+    if(keys.length===0){
+      sel.innerHTML = `<option value="">(No hay juegos guardados)</option>`;
+      return;
+    }
+
+    keys.forEach(k=>{
+      const g = data[k] || {};
+      const home = g.team_home || "Local";
+      const away = g.team_away || "Visitante";
+      const sh = g.score_home ?? 0;
+      const sa = g.score_away ?? 0;
+      const fecha = g.date ? ` • ${g.date}` : "";
+      sel.innerHTML += `<option value="${k}">${home} ${sh} - ${sa} ${away}${fecha}</option>`;
+    });
+  });
+
+  window.loadFromHistory = function(){
+    const key = $("history_select").value;
+    if(!key) return alert("Selecciona un juego.");
+    if(!confirm("¿Cargar este juego al marcador actual?")) return;
+
+    refHistory.child(key).once("value").then(s=>{
+      const g = s.val();
+      if(!g) return alert("No se encontró ese juego.");
+
+      // Restaurar como juego actual (no finalizado)
+      const restored = { ...g, finished:false };
+      return refGame.set(restored);
+    }).then(()=>alert("Juego cargado al marcador ✅"))
+      .catch(e=>{ console.error(e); alert("Error al cargar historial."); });
+  };
+
 </script>
 </body>
 </html>

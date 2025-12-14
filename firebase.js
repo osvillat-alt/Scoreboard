@@ -9,11 +9,8 @@ const firebaseConfig = {
   appId: "1:8415479304:web:0fe13fd4f35761383133bd"
 };
 
-
-// Inicializar Firebase (versión global)
+// Inicializar Firebase (versión compat)
 firebase.initializeApp(firebaseConfig);
 
 // Inicializar Realtime Database
 const db = firebase.database();
-
-}

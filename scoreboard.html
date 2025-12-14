@@ -210,10 +210,36 @@
       .teamScore{ font-size:30px; }
       .centerBlock .dash{ font-size:30px; }
     }
+   
+.watermark {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 80px;              
+  opacity: 0.20;            
+  pointer-events: none;    
+  z-index: 9999;
+  filter: drop-shadow(0 0 6px rgba(0,0,0,0.6));
+}
+
+@media (max-width: 720px) {
+  .watermark {
+    width: 70px;
+    opacity: 0.16;
+  }
+}
+
   </style>
 </head>
 
 <body>
+  
+<img
+  src="bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png"
+  alt="OVT"
+  class="watermark"
+/>
+
 <div class="wrap">
 
   <!-- Tabs -->

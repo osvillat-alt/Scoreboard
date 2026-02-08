@@ -27,6 +27,7 @@
       --chrome-inner: linear-gradient(90deg, #34495e 0%, #ecf0f1 50%, #34495e 100%);
       --glass: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 50%, transparent 51%, rgba(0, 0, 0, 0.2) 100%);
       --gold: #f39c12;
+      --gold-metallic: linear-gradient(180deg, #f39c12 0%, #f1c40f 50%, #d35400 100%);
       --blue-glow: 0 0 20px rgba(41, 128, 185, 0.3);
       --red-glow: 0 0 20px rgba(192, 57, 43, 0.3);
       --mesh-bg:
@@ -199,7 +200,7 @@
       z-index: 1;
     }
 
-    /* LOGOS */
+    /* LOGOS - UPDATED TO FILL */
     .team-logo {
       width: 90px;
       height: 90px;
@@ -213,15 +214,15 @@
       overflow: hidden;
       position: relative;
       z-index: 2;
+      flex-shrink: 0;
     }
 
     .team-logo img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      /* Changed back to contain for cleaner logos */
-      padding: 5px;
-      /* Padding inside circle */
+      object-fit: cover;
+      /* Fill the circle */
+      display: block;
     }
 
     /* TEXT STYLES */
@@ -288,28 +289,45 @@
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     }
 
-    /* POSSESSION ARROW - Defined as requested */
+    /* POSSESSION ARROW - METALLIC GOLD & FLASHING */
     .possession-arrow {
-      font-size: 16px;
-      color: #fff;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 2px 8px;
+      font-size: 13px;
+      color: #000;
+      background: var(--gold-metallic);
+      padding: 4px 12px;
       border-radius: 4px;
       text-transform: uppercase;
-      font-weight: bold;
-      font-family: 'Roboto', sans-serif;
+      font-weight: 900;
+      font-family: 'Orbitron', sans-serif;
       letter-spacing: 1px;
       display: none;
       /* Hidden by default */
       margin-top: 8px;
       width: fit-content;
       transform: skew(-10deg);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow:
+        0 0 15px rgba(243, 156, 18, 0.6),
+        inset 0 0 5px rgba(255, 255, 255, 0.5);
+      animation: flashPossession 2s infinite;
     }
 
     .team-panel.possession .possession-arrow {
       display: inline-block;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes flashPossession {
+
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(243, 156, 18, 0.8);
+      }
+
+      50% {
+        opacity: 0.7;
+        box-shadow: 0 0 5px rgba(243, 156, 18, 0.3);
+      }
     }
 
     .team-panel.away .possession-arrow {
@@ -376,7 +394,7 @@
     }
 
     .status-badge {
-      background: #c00;
+      background: linear-gradient(180deg, #f00 0%, #a00 100%);
       color: white;
       padding: 6px 20px;
       border-radius: 2px;
@@ -385,14 +403,28 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       transform: skew(-15deg);
-      box-shadow: 0 0 15px rgba(200, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      animation: flashLive 2s infinite alternate;
+    }
+
+    @keyframes flashLive {
+      from {
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        opacity: 0.8;
+      }
+
+      to {
+        box-shadow: 0 0 35px rgba(255, 0, 0, 1);
+        opacity: 1;
+      }
     }
 
     .status-badge.final {
       background: #333;
       color: #aaa;
       box-shadow: none;
+      animation: none;
     }
 
     /* TIMELINE & STATS Styles */
@@ -425,40 +457,78 @@
       z-index: 99;
     }
 
-    /* RESPONSIVE */
+    /* RESPONSIVE - MOBILE OPTIMIZATION */
     @media (max-width: 768px) {
+      body {
+        padding: 10px 5px;
+      }
+
+      .wrap {
+        padding: 0 5px;
+      }
+
       .scoreboard-inner {
         grid-template-columns: 1fr;
+        gap: 0;
       }
 
       .center-block {
         display: none;
       }
 
-      /* Hide VS on mobile to save space */
       .team-panel {
-        height: auto;
-        padding: 20px;
-        border-bottom: 1px solid #222;
+        height: 110px;
+        padding: 0 20px;
         flex-direction: row;
+        background: transparent;
+        /* Let the color from ::before show through */
+        border-bottom: 2px solid #222;
       }
 
       .team-panel.away {
         flex-direction: row-reverse;
         text-align: right;
+        border-bottom: none;
       }
 
       .team-logo {
-        width: 60px;
-        height: 60px;
+        width: 75px;
+        height: 75px;
+        border-width: 2px;
       }
 
       .team-score {
-        font-size: 50px;
+        font-size: 60px;
       }
 
       .team-name {
+        font-size: 18px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+      }
+
+      .possession-arrow {
+        font-size: 11px;
+        padding: 2px 8px;
+      }
+
+      .bottom-bar {
+        padding: 10px 15px;
+      }
+
+      .q-label {
+        font-size: 13px;
+      }
+
+      .quarter-text {
         font-size: 20px;
+      }
+
+      .status-badge {
+        font-size: 12px;
+        padding: 5px 15px;
       }
     }
   </style>
@@ -662,7 +732,7 @@
 
       const data = teamData[teamName] || {};
       const color = data.color || (isHome ? "#c0392b" : "#2980b9");
-      panel.style.setProperty(isHome ? '--home-color' : '--away-color', color);
+      panel.style.setProperty('--team-color', color);
 
       // Logo - always rebuild innerHTML to avoid stale references
       const logoPath = getLogoPath(data.logoId);
@@ -745,7 +815,7 @@
 
       if (!qb) {
         title.textContent = "Estadísticas del QB";
-        nameLine.textContent = "Nombre: Ian Villalobos";
+        nameLine.textContent = "Nombre: —";
         cmpLine.textContent = "CMP/ATT: 0/0 (0%)";
         document.getElementById("qbPassYds").textContent = "Yds pase: 0";
         document.getElementById("qbPassTd").textContent = "TD pase: 0";

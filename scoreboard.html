@@ -20,182 +20,222 @@
 
   <style>
     :root {
-      --bg: #0a0a0f;
-      --panel: linear-gradient(180deg, #1a1a24 0%, #0d0d12 100%);
-      --border-metallic: linear-gradient(180deg, #888 0%, #333 50%, #666 100%);
-      --chrome: linear-gradient(180deg, #f0f0f0 0%, #999 30%, #ccc 50%, #777 70%, #999 100%);
-      --gold: #f1c40f;
-      --red-glow: rgba(255, 50, 50, 0.6);
-      --blue-glow: rgba(50, 100, 255, 0.6);
-      --text: #ffffff;
-      --muted: rgba(255, 255, 255, 0.7);
-    }
-
-    * {
-      box-sizing: border-box;
+      --bg: #0b0c15;
+      /* Deep broadcast blue-black */
+      --panel: linear-gradient(180deg, #1e2330 0%, #0f1219 100%);
+      --chrome-border: linear-gradient(180deg, #ecf0f1 0%, #bdc3c7 20%, #7f8c8d 50%, #bdc3c7 80%, #ecf0f1 100%);
+      --chrome-inner: linear-gradient(90deg, #34495e 0%, #ecf0f1 50%, #34495e 100%);
+      --glass: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 50%, transparent 51%, rgba(0, 0, 0, 0.2) 100%);
+      --gold: #f39c12;
+      --blue-glow: 0 0 20px rgba(41, 128, 185, 0.3);
+      --red-glow: 0 0 20px rgba(192, 57, 43, 0.3);
+      --mesh-bg:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
     }
 
     body {
       margin: 0;
       background: var(--bg);
       background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(100, 20, 20, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 50%, rgba(20, 40, 100, 0.15) 0%, transparent 50%);
-      color: var(--text);
-      font-family: 'Roboto', Arial, sans-serif;
+        radial-gradient(circle at 50% 0%, #1a253a 0%, #050505 80%);
+      color: white;
+      font-family: 'Orbitron', sans-serif;
       min-height: 100vh;
       padding: 20px;
     }
 
     .wrap {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
-    /* Tabs */
+    /* Tabs - Styled exactly like the top of the reference image */
     .tabs {
       display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 0;
+      /* No gap for connected look */
+      margin-bottom: 25px;
+      justify-content: center;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
     }
 
     .tab {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--muted);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 14px;
-      padding: 10px 20px;
+      background: linear-gradient(180deg, #222 0%, #111 100%);
+      color: #777;
+      border: 1px solid #333;
+      padding: 12px 30px;
       cursor: pointer;
-      border-radius: 8px;
-      transition: all 0.2s;
       font-family: 'Roboto', sans-serif;
-      font-weight: 700;
+      text-transform: uppercase;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 1px;
+      transform: skew(-20deg);
+      transition: all 0.2s;
+      min-width: 140px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tab span {
+      display: block;
+      transform: skew(20deg);
     }
 
     .tab:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: #2a2a2a;
+      color: #aaa;
     }
 
     .tab.active {
+      background: linear-gradient(180deg, #2c3e50 0%, #000 100%);
       color: var(--gold);
-      border-color: var(--gold);
-      background: rgba(241, 196, 15, 0.1);
+      border: 1px solid var(--gold);
+      box-shadow: inset 0 0 20px rgba(243, 156, 18, 0.1);
+      z-index: 2;
     }
 
     /* Meta Header */
     .meta-header {
+      background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.8) 20%, rgba(0, 0, 0, 0.8) 80%, transparent 100%);
       text-align: center;
-      padding: 12px;
-      margin-bottom: 16px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .meta-location {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .meta-date {
+      padding: 8px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #aaa;
       font-size: 14px;
-      color: var(--muted);
+      font-family: 'Roboto', sans-serif;
+      text-shadow: 0 2px 4px black;
     }
 
-    /* Main Scoreboard */
+    /* === MAIN SCOREBOARD CONTAINER === */
     .scoreboard {
       position: relative;
-      background: var(--panel);
-      border: 3px solid transparent;
-      border-radius: 16px;
-      padding: 4px;
+      background: #0b0c15;
+      border-radius: 8px;
+      padding: 10px;
       box-shadow:
-        0 0 30px rgba(0, 0, 0, 0.8),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      overflow: hidden;
+        0 20px 60px rgba(0, 0, 0, 0.9),
+        0 0 0 1px #1a1a1a;
+      /* Subtle mesh pattern */
+      background-image:
+        repeating-linear-gradient(45deg,
+          rgba(255, 255, 255, 0.03) 0,
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 0,
+          transparent 5px);
     }
 
-    .scoreboard::before {
+    /* Metallic Frame */
+    .scoreboard::after {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      bottom: -5px;
+      border-radius: 12px;
+      background: var(--chrome-border);
+      z-index: -2;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Inner Scoreboard structure */
+    .scoreboard-inner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 2px;
+      /* Slight gap for separator effect */
+      background: #000;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 2px solid #333;
+    }
+
+    /* TEAM PANELS */
+    .team-panel {
+      position: relative;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 25px;
+      overflow: hidden;
+      /* Clean background by default */
+      background: linear-gradient(180deg, #151515 0%, #080808 100%);
+    }
+
+    /* Team Color Gradients - Cleaner, brighter */
+    .team-panel::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      border-radius: 14px;
-      padding: 3px;
-      background: var(--chrome);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
+      /* Dynamic gradient based on team color */
+      background: linear-gradient(90deg, var(--team-color, #222) 0%, transparent 80%);
+      opacity: 0.8;
+      z-index: 0;
+    }
+
+    .team-panel.away::before {
+      background: linear-gradient(-90deg, var(--team-color, #222) 0%, transparent 80%);
+    }
+
+    /* Metallic sheen overlay */
+    .team-panel::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
       pointer-events: none;
+      z-index: 1;
     }
 
-    .scoreboard-inner {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 0;
-      align-items: stretch;
-      background: linear-gradient(180deg, #1a1a24 0%, #0d0d12 100%);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    /* Team Panel */
-    .team-panel {
-      position: relative;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      min-height: 140px;
-    }
-
-    .team-panel.home {
-      background: linear-gradient(135deg, var(--home-color, #c0392b) 0%, rgba(0, 0, 0, 0.7) 100%);
-      box-shadow: inset -20px 0 40px rgba(0, 0, 0, 0.5);
-    }
-
-    .team-panel.away {
-      background: linear-gradient(225deg, var(--away-color, #2980b9) 0%, rgba(0, 0, 0, 0.7) 100%);
-      box-shadow: inset 20px 0 40px rgba(0, 0, 0, 0.5);
-      flex-direction: row-reverse;
-    }
-
+    /* LOGOS */
     .team-logo {
-      width: 80px;
-      height: 80px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.3);
-      border: 3px solid rgba(255, 255, 255, 0.3);
+      background: radial-gradient(circle at 30% 30%, #444, #111);
+      border: 3px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
     }
 
     .team-logo img {
       width: 100%;
       height: 100%;
       object-fit: contain;
+      /* Changed back to contain for cleaner logos */
+      padding: 5px;
+      /* Padding inside circle */
     }
 
-    .team-logo .initials {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 28px;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.8);
-    }
-
+    /* TEXT STYLES */
     .team-info {
-      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      justify-content: center;
+      z-index: 2;
+      flex: 1;
+      padding: 0 20px;
+    }
+
+    .team-panel.home .team-info {
+      text-align: left;
     }
 
     .team-panel.away .team-info {
@@ -203,386 +243,209 @@
     }
 
     .team-name {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      line-height: 1.2;
+      font-family: 'Roboto', sans-serif;
+      /* Cleaner font for names */
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+      margin-bottom: 2px;
+      color: #fff;
+      letter-spacing: 0.5px;
     }
 
     .team-score {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 56px;
+      font-size: 70px;
       font-weight: 900;
+      line-height: 0.9;
+      font-family: 'Orbitron', monospace;
+      color: #fff;
       text-shadow:
-        3px 3px 6px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(255, 255, 255, 0.2);
-      line-height: 1;
+        0 2px 0 #000,
+        0 0 10px rgba(255, 255, 255, 0.3);
+      position: relative;
+      z-index: 2;
     }
 
-    .possession-badge {
-      display: none;
-      font-size: 12px;
-      font-weight: 700;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 4px 10px;
-      border-radius: 20px;
-      width: fit-content;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    .team-panel.possession .possession-badge {
-      display: inline-block;
-    }
-
-    .team-panel.away .possession-badge {
-      margin-left: auto;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.6;
-      }
-    }
-
-    /* Center VS Block */
+    /* VS BADGE CENTRAL - Dark and sleek */
     .center-block {
+      width: 80px;
+      background: linear-gradient(180deg, #222 0%, #111 100%);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 24px;
-      background: linear-gradient(180deg, #222 0%, #111 100%);
-      border-left: 2px solid rgba(255, 255, 255, 0.1);
-      border-right: 2px solid rgba(255, 255, 255, 0.1);
+      z-index: 3;
+      border-left: 1px solid #333;
+      border-right: 1px solid #333;
       position: relative;
     }
 
-    .vs-badge {
-      font-family: 'Orbitron', sans-serif;
+    .vs-text {
       font-size: 28px;
       font-weight: 900;
+      font-style: italic;
+      color: #777;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    /* POSSESSION ARROW - Defined as requested */
+    .possession-arrow {
+      font-size: 16px;
       color: #fff;
-      background: linear-gradient(180deg, #444 0%, #222 100%);
-      padding: 12px 18px;
-      border-radius: 10px;
-      border: 2px solid #666;
-      box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Bottom Info Bar */
-    .info-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 24px;
-      margin-top: 16px;
-      padding: 14px 20px;
-      background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
-      border-radius: 10px;
-      border: 2px solid #333;
-    }
-
-    .quarter-display {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .quarter-label {
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 700;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 4px;
       text-transform: uppercase;
+      font-weight: bold;
+      font-family: 'Roboto', sans-serif;
+      letter-spacing: 1px;
+      display: none;
+      /* Hidden by default */
+      margin-top: 8px;
+      width: fit-content;
+      transform: skew(-10deg);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .team-panel.possession .possession-arrow {
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .team-panel.away .possession-arrow {
+      margin-left: auto;
+    }
+
+
+    /* BOTTOM BAR (Quarter & Live) */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #151515;
+      border-top: 3px solid #333;
+      padding: 12px 20px;
+      margin-top: 0;
+      /* Connected to scoreboard */
+      border-radius: 0 0 6px 6px;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 100% 3px;
+    }
+
+    .quarter-box {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .q-label {
+      color: #aaa;
+      font-weight: 700;
+      font-size: 16px;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .quarter-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--gold);
+      min-width: 40px;
+      text-align: center;
+      text-shadow: 0 0 10px rgba(243, 156, 18, 0.4);
     }
 
     .quarter-badges {
       display: flex;
-      gap: 6px;
+      gap: 5px;
     }
 
     .quarter-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      background: #333;
-      border: 1px solid #555;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      background: #222;
+      border: 1px solid #444;
+      transform: skew(-15deg);
     }
 
     .quarter-dot.active {
       background: var(--gold);
       box-shadow: 0 0 8px var(--gold);
+      border-color: #fff;
     }
 
-    .quarter-dot.completed {
-      background: #666;
-    }
-
-    .quarter-text {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--gold);
-      min-width: 50px;
-      text-align: center;
-    }
-
-    .live-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(180deg, #d00 0%, #900 100%);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-family: 'Orbitron', sans-serif;
+    .status-badge {
+      background: #c00;
+      color: white;
+      padding: 6px 20px;
+      border-radius: 2px;
+      font-weight: 900;
       font-size: 14px;
-      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
-      box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
-      animation: live-pulse 2s ease-in-out infinite;
+      transform: skew(-15deg);
+      box-shadow: 0 0 15px rgba(200, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .live-badge::before {
-      content: '';
-      width: 10px;
-      height: 10px;
-      background: #fff;
-      border-radius: 50%;
-      animation: blink 1s ease-in-out infinite;
-    }
-
-    @keyframes live-pulse {
-
-      0%,
-      100% {
-        box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
-      }
-
-      50% {
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
-      }
-    }
-
-    @keyframes blink {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.3;
-      }
-    }
-
-    .finished-badge {
-      background: linear-gradient(180deg, #444 0%, #222 100%);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .status-badge.final {
+      background: #333;
       color: #aaa;
+      box-shadow: none;
     }
 
-    /* Timeline */
-    .timeline-box {
-      margin-top: 20px;
-      background: linear-gradient(180deg, #151518 0%, #0a0a0c 100%);
-      border: 2px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 16px;
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .timeline-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      margin: 0 0 12px;
-      color: var(--gold);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .timeline {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    /* TIMELINE & STATS Styles */
+    .content-box {
+      background: rgba(15, 15, 20, 0.95);
+      border: 1px solid #333;
+      border-top: 4px solid var(--gold);
+      padding: 20px;
+      margin-top: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .timeline li {
-      padding: 12px 14px;
+      border-left: 3px solid var(--gold);
       margin-bottom: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 8px;
-      border-left: 4px solid var(--gold);
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.9);
-      line-height: 1.5;
-      transition: background 0.2s;
-    }
-
-    .timeline li:hover {
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .timeline li:first-child {
-      animation: slideIn 0.3s ease-out;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .timeline li.muted {
-      border-left-color: #444;
-      color: var(--muted);
-    }
-
-    /* Stats & History Views */
-    .stat-card {
-      margin-top: 20px;
-      background: linear-gradient(180deg, #151518 0%, #0a0a0c 100%);
-      border: 2px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 20px;
-    }
-
-    .stat-card h2 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      margin: 0 0 16px;
-      color: var(--gold);
-      text-transform: uppercase;
-    }
-
-    .stat-line {
-      margin: 8px 0;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 15px;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .history-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 12px;
-    }
-
-    select,
-    button {
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #1a1a1a;
-      color: var(--text);
-      font-size: 14px;
+      padding-left: 12px;
       font-family: 'Roboto', sans-serif;
+      font-size: 14px;
+      color: #ddd;
     }
 
-    button {
-      cursor: pointer;
-      font-weight: 700;
-      transition: all 0.2s;
-    }
-
-    button:hover {
-      background: #2a2a2a;
-    }
-
-    button.primary {
-      background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
-      border-color: rgba(241, 196, 15, 0.5);
-      color: var(--gold);
-    }
-
-    /* Watermark */
+    /* WATERMARK */
     .watermark {
       position: fixed;
-      bottom: 16px;
-      right: 16px;
-      width: 70px;
-      opacity: 0.15;
-      pointer-events: none;
-      z-index: 9999;
-      filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.6));
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      opacity: 0.3;
+      filter: grayscale(100%);
+      z-index: 99;
     }
 
-    /* Mobile */
+    /* RESPONSIVE */
     @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-
       .scoreboard-inner {
         grid-template-columns: 1fr;
       }
 
+      .center-block {
+        display: none;
+      }
+
+      /* Hide VS on mobile to save space */
       .team-panel {
-        flex-direction: column !important;
-        text-align: center;
-        padding: 16px;
-        min-height: auto;
+        height: auto;
+        padding: 20px;
+        border-bottom: 1px solid #222;
+        flex-direction: row;
       }
 
       .team-panel.away {
-        order: 2;
-      }
-
-      .center-block {
-        order: 1;
-        padding: 12px;
-        border-left: none;
-        border-right: none;
-        border-top: 2px solid rgba(255, 255, 255, 0.1);
-        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .team-panel.home {
-        order: 0;
-        box-shadow: none;
-      }
-
-      .team-info {
-        text-align: center !important;
-      }
-
-      .team-name {
-        font-size: 16px;
-      }
-
-      .team-score {
-        font-size: 48px;
+        flex-direction: row-reverse;
+        text-align: right;
       }
 
       .team-logo {
@@ -590,23 +453,12 @@
         height: 60px;
       }
 
-      .vs-badge {
+      .team-score {
+        font-size: 50px;
+      }
+
+      .team-name {
         font-size: 20px;
-        padding: 8px 14px;
-      }
-
-      .info-bar {
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .possession-badge {
-        margin: 0 auto !important;
-      }
-
-      .watermark {
-        width: 50px;
-        opacity: 0.12;
       }
     }
   </style>
@@ -646,13 +498,13 @@
             <div class="team-info">
               <div class="team-name" id="homeName">Local</div>
               <div class="team-score" id="homeScore">0</div>
-              <div class="possession-badge">🏈 Posesión</div>
+              <div class="possession-arrow">◀ POSESIÓN</div>
             </div>
           </div>
 
           <!-- Center VS -->
           <div class="center-block">
-            <div class="vs-badge">VS</div>
+            <div class="vs-text">VS</div>
           </div>
 
           <!-- Away Team -->
@@ -663,38 +515,39 @@
             <div class="team-info">
               <div class="team-name" id="awayName">Visitante</div>
               <div class="team-score" id="awayScore">0</div>
-              <div class="possession-badge">🏈 Posesión</div>
+              <div class="possession-arrow">POSESIÓN ▶</div>
             </div>
           </div>
 
         </div>
-      </div>
 
-      <!-- Info Bar -->
-      <div class="info-bar">
-        <div class="quarter-display">
-          <span class="quarter-label">Cuarto:</span>
-          <span class="quarter-text" id="quarterText">1Q</span>
-          <div class="quarter-badges" id="quarterBadges">
-            <div class="quarter-dot active"></div>
-            <div class="quarter-dot"></div>
-            <div class="quarter-dot"></div>
-            <div class="quarter-dot"></div>
+        <!-- Info Bar (now inside scoreboard frame) -->
+        <div class="bottom-bar">
+          <div class="quarter-box">
+            <span class="q-label">CUARTO:</span>
+            <span class="quarter-text" id="quarterText">1</span>
+            <div class="quarter-badges" id="quarterBadges">
+              <div class="quarter-dot active"></div>
+              <div class="quarter-dot"></div>
+              <div class="quarter-dot"></div>
+              <div class="quarter-dot"></div>
+            </div>
           </div>
+          <div id="statusBadge" class="status-badge">EN VIVO</div>
         </div>
-        <div id="statusBadge" class="live-badge">EN VIVO</div>
       </div>
 
       <!-- Timeline -->
-      <div class="timeline-box">
-        <div class="timeline-title">📋 Crónica del Partido</div>
+      <div class="content-box">
+        <div class="timeline-title" style="color:var(--gold); font-weight:bold; margin-bottom:15px; font-size:18px;">📋
+          CRÓNICA DEL PARTIDO</div>
         <ul class="timeline" id="timelineList"></ul>
       </div>
     </div>
 
     <!-- VIEW: STATS -->
     <div id="viewStats" style="display:none;">
-      <div class="stat-card">
+      <div class="content-box">
         <h2 id="qbTitle">Estadísticas del QB</h2>
         <div class="stat-line" id="qbNameLine">Nombre: —</div>
         <div class="stat-line" id="qbCmpLine">CMP/ATT: 0/0 (0%)</div>
@@ -703,27 +556,30 @@
         <div class="stat-line" id="qbInts">Intercepciones: 0</div>
         <div class="stat-line" id="qbRushYds">Yds tierra: 0</div>
         <div class="stat-line" id="qbRushTd">TD tierra: 0</div>
-        <div class="muted" style="margin-top:14px;font-size:13px;">
-         
+        <div class="muted" style="margin-top:14px;font-size:13px; color:#777;">
+          Estas estadísticas se actualizan en vivo desde el panel administrador.
         </div>
       </div>
     </div>
 
     <!-- VIEW: HISTORY -->
     <div id="viewHistory" style="display:none;">
-      <div class="stat-card">
-        <h2>Historial de Partidos</h2>
-        <div class="muted" style="font-size:13px;">
+      <div class="content-box">
+        <h2 style="color:var(--gold); margin-bottom:10px;">Historial de Partidos</h2>
+        <div class="muted" style="font-size:13px; color:#777; margin-bottom:15px;">
           Selecciona un partido guardado para verlo aquí (solo lectura). No afecta el partido en vivo.
         </div>
 
         <div class="history-row">
           <select id="history_select" style="min-width:260px; max-width:520px;"></select>
-          <button class="primary" onclick="loadHistoryToViewer()">Ver partido</button>
-          <button onclick="backToLive()">Volver a en vivo</button>
+          <button class="tab"
+            style="transform:none; padding:8px 16px; min-width:auto; background:var(--gold); color:black; border:none;"
+            onclick="loadHistoryToViewer()">Ver partido</button>
+          <button class="tab" style="transform:none; padding:8px 16px; min-width:auto;" onclick="backToLive()">Volver a
+            en vivo</button>
         </div>
 
-        <div id="history_hint" class="muted" style="margin-top:14px;font-size:13px;">
+        <div id="history_hint" class="muted" style="margin-top:14px;font-size:13px; color:#777;">
           —
         </div>
       </div>
@@ -836,12 +692,12 @@
 
       if (finished) {
         quarterText.textContent = "FINAL";
-        statusBadge.className = "finished-badge";
+        statusBadge.className = "status-badge final";
         statusBadge.innerHTML = "FINALIZADO";
       } else {
         quarterText.textContent = safeText(data.quarter);
-        statusBadge.className = "live-badge";
-        statusBadge.innerHTML = "EN VIVO";
+        statusBadge.className = "status-badge";
+        statusBadge.innerHTML = "🔴 EN VIVO";
       }
 
       // Update quarter dots

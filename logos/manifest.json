@@ -5,11 +5,55 @@
       "name": "Sin Logo",
       "file": "placeholder.png"
     },
-     {
-      "id": "Cyclones",
+    {
+      "id": "borregos_cuu",
+      "name": "Borregos CUU",
+      "file": "Borregos CUU.png"
+    },
+    {
+      "id": "borregos_lag",
+      "name": "Borregos LAG",
+      "file": "Borregos LAG.png"
+    },
+    {
+      "id": "cyclones",
       "name": "Cyclones",
       "file": "Cyclones.png"
+    },
+    {
+      "id": "guerreros_cobach",
+      "name": "Guerreros Cobach",
+      "file": "Guerreros cobach.png"
+    },
+    {
+      "id": "halcones",
+      "name": "Halcones",
+      "file": "Halcones.png"
+    },
+    {
+      "id": "indios",
+      "name": "Indios",
+      "file": "Indios.png"
+    },
+    {
+      "id": "liebres",
+      "name": "Liebres",
+      "file": "Liebres.png"
+    },
+    {
+      "id": "lobos",
+      "name": "Lobos",
+      "file": "Lobos.png"
+    },
+    {
+      "id": "rams",
+      "name": "Rams",
+      "file": "Rams.png"
+    },
+    {
+      "id": "cheyenes",
+      "name": "Cheyenes",
+      "file": "cheyenes.png"
     }
   ]
 }
-

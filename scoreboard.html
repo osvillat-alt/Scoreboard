@@ -784,9 +784,50 @@
 
       <!-- Timeline -->
       <div class="content-box">
-        <div class="timeline-title" style="color:var(--gold); font-weight:bold; margin-bottom:15px; font-size:18px;">
+        <div class="timeline-title" style="color:var(--gold); font-weight:bold; margin-bottom:15px; font-size:18px;">📋
           CRÓNICA DEL PARTIDO</div>
         <ul class="timeline" id="timelineList"></ul>
+      </div>
+
+      <!-- POLL UI -->
+      <div id="pollContainer" style="display:none; margin-top:25px;">
+        <div class="poll-card">
+          <div class="poll-header">
+            <h3>¿Quién ganará hoy?</h3>
+          </div>
+          <div class="poll-body">
+            <div class="vote-options" id="voteOptions">
+              <button class="vote-btn" onclick="submitVote('home')">
+                <div id="pollLogoHome" class="team-logo"></div>
+                <span id="pollNameHome">Local</span>
+              </button>
+              <button class="vote-btn" onclick="submitVote('away')">
+                <div id="pollLogoAway" class="team-logo"></div>
+                <span id="pollNameAway">Visitante</span>
+              </button>
+            </div>
+
+            <div class="poll-results" id="pollResults">
+              <div class="poll-bar-container">
+                <div class="poll-bar home" id="barHome"></div>
+                <div class="bar-label">
+                  <span id="resNameHome">LOCAL</span>
+                  <span id="resPctHome">50%</span>
+                </div>
+              </div>
+
+              <div class="poll-bar-container" style="margin-top: 15px;">
+                <div class="poll-bar away" id="barAway"></div>
+                <div class="bar-label">
+                  <span id="resNameAway">VISITANTE</span>
+                  <span id="resPctAway">50%</span>
+                </div>
+              </div>
+
+              <div class="thanks-msg" id="thanksMsg">¡Voto registrado! Gracias por participar.</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -807,73 +848,33 @@
       </div>
     </div>
 
-    <!-- POLL UI -->
-    <div id="pollContainer" class="content-box-empty">
-      <div class="poll-card">
-        <div class="poll-header">
-          <h3>¿Quién ganará hoy?</h3>
+
+
+
+
+    <!-- VIEW: HISTORY -->
+    <div id="viewHistory" style="display:none;">
+      <div class="content-box">
+        <h2 style="color:var(--gold); margin-bottom:10px;">Historial de Partidos</h2>
+        <div class="muted" style="font-size:13px; color:#777; margin-bottom:15px;">
+          Selecciona un partido guardado para verlo aquí (solo lectura). No afecta el partido en vivo.
         </div>
-        <div class="poll-body">
-          <div class="vote-options" id="voteOptions">
-            <button class="vote-btn" onclick="submitVote('home')">
-              <div id="pollLogoHome" class="team-logo"></div>
-              <span id="pollNameHome">Local</span>
-            </button>
-            <button class="vote-btn" onclick="submitVote('away')">
-              <div id="pollLogoAway" class="team-logo"></div>
-              <span id="pollNameAway">Visitante</span>
-            </button>
-          </div>
 
-          <div class="poll-results" id="pollResults">
-            <div class="poll-bar-container">
-              <div class="poll-bar home" id="barHome"></div>
-              <div class="bar-label">
-                <span id="resNameHome">LOCAL</span>
-                <span id="resPctHome">50%</span>
-              </div>
-            </div>
-
-            <div class="poll-bar-container" style="margin-top: 15px;">
-              <div class="poll-bar away" id="barAway"></div>
-              <div class="bar-label">
-                <span id="resNameAway">VISITANTE</span>
-                <span id="resPctAway">50%</span>
-              </div>
-            </div>
-
-            <div class="thanks-msg" id="thanksMsg">¡Voto registrado! Gracias por participar.</div>
-          </div>
+        <div class="history-row">
+          <select id="history_select" style="min-width:260px; max-width:520px;"></select>
+          <button class="tab"
+            style="transform:none; padding:8px 16px; min-width:auto; background:var(--gold); color:black; border:none;"
+            onclick="loadHistoryToViewer()">Ver partido</button>
+          <button class="tab" style="transform:none; padding:8px 16px; min-width:auto;" onclick="backToLive()">Volver
+            a
+            en vivo</button>
         </div>
-      </div>
-    </div> class="muted" style="margin-top:14px;font-size:13px; color:#777;">
-    Estas estadísticas se actualizan en vivo desde el panel administrador.
-  </div>
-  </div>
-  </div>
 
-  <!-- VIEW: HISTORY -->
-  <div id="viewHistory" style="display:none;">
-    <div class="content-box">
-      <h2 style="color:var(--gold); margin-bottom:10px;">Historial de Partidos</h2>
-      <div class="muted" style="font-size:13px; color:#777; margin-bottom:15px;">
-        Selecciona un partido guardado para verlo aquí (solo lectura). No afecta el partido en vivo.
-      </div>
-
-      <div class="history-row">
-        <select id="history_select" style="min-width:260px; max-width:520px;"></select>
-        <button class="tab"
-          style="transform:none; padding:8px 16px; min-width:auto; background:var(--gold); color:black; border:none;"
-          onclick="loadHistoryToViewer()">Ver partido</button>
-        <button class="tab" style="transform:none; padding:8px 16px; min-width:auto;" onclick="backToLive()">Volver a
-          en vivo</button>
-      </div>
-
-      <div id="history_hint" class="muted" style="margin-top:14px;font-size:13px; color:#777;">
-        —
+        <div id="history_hint" class="muted" style="margin-top:14px;font-size:13px; color:#777;">
+          —
+        </div>
       </div>
     </div>
-  </div>
 
   </div>
 
@@ -1045,8 +1046,8 @@
         return;
       }
 
-      const team = qb.team || "Cyclones";
-      const name = qb.name || "Ian Villalobos";
+      const team = qb.team || "—";
+      const name = qb.name || "—";
       const st = qb.stats || {};
 
       const cmp = st.pass_cmp || 0;
@@ -1116,7 +1117,7 @@
       document.getElementById("pollLogoAway").innerHTML = `<img src="${getLogoPath(awayData.logoId)}" onerror="this.style.display='none'"/>`;
 
       // Check if user has already voted
-      const pollId = data.pollStartTime || "default"; 
+      const pollId = data.pollStartTime || "default"; // Use a unique session key if possible
       const voted = localStorage.getItem("voted_" + pollId);
 
       const options = document.getElementById("voteOptions");

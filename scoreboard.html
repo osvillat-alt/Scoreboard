@@ -446,6 +446,181 @@
       color: #ddd;
     }
 
+    /* POLL STYLES */
+    #pollContainer {
+      display: none;
+      /* Hidden by default */
+      margin-top: 30px;
+    }
+
+    .poll-card {
+      background: linear-gradient(180deg, #1e2330 0%, #0a0a10 100%);
+      border: 1px solid #333;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .poll-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--chrome-border);
+    }
+
+    .poll-header {
+      padding: 15px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .poll-header h3 {
+      margin: 0;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .poll-body {
+      padding: 25px;
+      position: relative;
+    }
+
+    /* Voting buttons */
+    .vote-options {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 10px 0;
+    }
+
+    .vote-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s, filter 0.2s;
+      position: relative;
+    }
+
+    .vote-btn:hover {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+
+    .vote-btn .team-logo {
+      width: 110px;
+      height: 110px;
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .vote-btn span {
+      margin-top: 15px;
+      font-weight: 900;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 2px 4px black;
+    }
+
+    /* Result Bars */
+    .poll-results {
+      display: none;
+      /* Shown after voting */
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .poll-bar-container {
+      position: relative;
+      height: 45px;
+      background: #000;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #333;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+    }
+
+    .poll-bar {
+      height: 100%;
+      width: 50%;
+      /* Default */
+      transition: width 1s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+      position: relative;
+    }
+
+    .poll-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    }
+
+    .poll-bar.home {
+      background: linear-gradient(90deg, #2980b9, #3498db);
+      box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+    }
+
+    .poll-bar.away {
+      background: linear-gradient(90deg, #c0392b, #e74c3c);
+      box-shadow: 0 0 20px rgba(231, 76, 60, 0.4);
+    }
+
+    .bar-label {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      font-weight: 900;
+      font-size: 16px;
+      padding: 0 15px;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    .thanks-msg {
+      text-align: center;
+      margin-top: 20px;
+      font-style: italic;
+      color: var(--gold);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .vote-options {
+        gap: 20px;
+      }
+
+      .vote-btn .team-logo {
+        width: 80px;
+        height: 80px;
+      }
+
+      .poll-bar-container {
+        height: 35px;
+      }
+    }
+
     /* WATERMARK */
     .watermark {
       position: fixed;
@@ -617,43 +792,88 @@
 
     <!-- VIEW: STATS -->
     <div id="viewStats" style="display:none;">
-      <div class="content-box">
-        <h2 id="qbTitle">Estadísticas del QB</h2>
-        <div class="stat-line" id="qbNameLine">Nombre: —</div>
-        <div class="stat-line" id="qbCmpLine">CMP/ATT: 0/0 (0%)</div>
-        <div class="stat-line" id="qbPassYds">Yds pase: 0</div>
-        <div class="stat-line" id="qbPassTd">TD pase: 0</div>
-        <div class="stat-line" id="qbInts">Intercepciones: 0</div>
-        <div class="stat-line" id="qbRushYds">Yds tierra: 0</div>
-        <div class="stat-line" id="qbRushTd">TD tierra: 0</div>
-        <div class="muted" style="margin-top:14px;font-size:13px; color:#777;">
-          Estas estadísticas se actualizan en vivo desde el panel administrador.
+      <div id="stats_container" class="content-box-qb" style="display: none;">
+        <div id="qbTitle" class="qb-title">Estadísticas del QB</div>
+        <div id="qbName" class="qb-name">Nombre: —</div>
+        <div id="qbPct" class="qb-stat">CMP/ATT: 0/0 (0%)</div>
+
+        <div class="qb-grid">
+          <div class="qb-stat"><span class="label">Yds pase</span><span id="qbPassYds">0</span></div>
+          <div class="qb-stat"><span class="label">TD pase</span><span id="qbPassTd">0</span></div>
+          <div class="qb-stat"><span class="label">INTs</span><span id="qbInts">0</span></div>
+          <div class="qb-stat"><span class="label">Yds tierra</span><span id="qbRushYds">0</span></div>
+          <div class="qb-stat"><span class="label">TD tierra</span><span id="qbRushTd">0</span></div>
         </div>
       </div>
     </div>
 
-    <!-- VIEW: HISTORY -->
-    <div id="viewHistory" style="display:none;">
-      <div class="content-box">
-        <h2 style="color:var(--gold); margin-bottom:10px;">Historial de Partidos</h2>
-        <div class="muted" style="font-size:13px; color:#777; margin-bottom:15px;">
-          Selecciona un partido guardado para verlo aquí (solo lectura). No afecta el partido en vivo.
+    <!-- POLL UI -->
+    <div id="pollContainer" class="content-box-empty">
+      <div class="poll-card">
+        <div class="poll-header">
+          <h3>¿Quién ganará hoy?</h3>
         </div>
+        <div class="poll-body">
+          <div class="vote-options" id="voteOptions">
+            <button class="vote-btn" onclick="submitVote('home')">
+              <div id="pollLogoHome" class="team-logo"></div>
+              <span id="pollNameHome">Local</span>
+            </button>
+            <button class="vote-btn" onclick="submitVote('away')">
+              <div id="pollLogoAway" class="team-logo"></div>
+              <span id="pollNameAway">Visitante</span>
+            </button>
+          </div>
 
-        <div class="history-row">
-          <select id="history_select" style="min-width:260px; max-width:520px;"></select>
-          <button class="tab"
-            style="transform:none; padding:8px 16px; min-width:auto; background:var(--gold); color:black; border:none;"
-            onclick="loadHistoryToViewer()">Ver partido</button>
-          <button class="tab" style="transform:none; padding:8px 16px; min-width:auto;" onclick="backToLive()">Volver a
-            en vivo</button>
-        </div>
+          <div class="poll-results" id="pollResults">
+            <div class="poll-bar-container">
+              <div class="poll-bar home" id="barHome"></div>
+              <div class="bar-label">
+                <span id="resNameHome">LOCAL</span>
+                <span id="resPctHome">50%</span>
+              </div>
+            </div>
 
-        <div id="history_hint" class="muted" style="margin-top:14px;font-size:13px; color:#777;">
-          —
+            <div class="poll-bar-container" style="margin-top: 15px;">
+              <div class="poll-bar away" id="barAway"></div>
+              <div class="bar-label">
+                <span id="resNameAway">VISITANTE</span>
+                <span id="resPctAway">50%</span>
+              </div>
+            </div>
+
+            <div class="thanks-msg" id="thanksMsg">¡Voto registrado! Gracias por participar.</div>
+          </div>
         </div>
       </div>
+    </div> class="muted" style="margin-top:14px;font-size:13px; color:#777;">
+    Estas estadísticas se actualizan en vivo desde el panel administrador.
+  </div>
+  </div>
+  </div>
+
+  <!-- VIEW: HISTORY -->
+  <div id="viewHistory" style="display:none;">
+    <div class="content-box">
+      <h2 style="color:var(--gold); margin-bottom:10px;">Historial de Partidos</h2>
+      <div class="muted" style="font-size:13px; color:#777; margin-bottom:15px;">
+        Selecciona un partido guardado para verlo aquí (solo lectura). No afecta el partido en vivo.
+      </div>
+
+      <div class="history-row">
+        <select id="history_select" style="min-width:260px; max-width:520px;"></select>
+        <button class="tab"
+          style="transform:none; padding:8px 16px; min-width:auto; background:var(--gold); color:black; border:none;"
+          onclick="loadHistoryToViewer()">Ver partido</button>
+        <button class="tab" style="transform:none; padding:8px 16px; min-width:auto;" onclick="backToLive()">Volver a
+          en vivo</button>
+      </div>
+
+      <div id="history_hint" class="muted" style="margin-top:14px;font-size:13px; color:#777;">
+        —
+      </div>
     </div>
+  </div>
 
   </div>
 
@@ -825,8 +1045,8 @@
         return;
       }
 
-      const team = qb.team || "—";
-      const name = qb.name || "—";
+      const team = qb.team || "Cyclones";
+      const name = qb.name || "Ian Villalobos";
       const st = qb.stats || {};
 
       const cmp = st.pass_cmp || 0;
@@ -866,8 +1086,88 @@
 
         const qb = (data.players && data.players.qb) ? data.players.qb : null;
         renderQB(qb);
+
+        // --- POLL SYNC ---
+        const pollEnabled = !!data.pollEnabled;
+        const container = document.getElementById("pollContainer");
+        if (pollEnabled) {
+          container.style.display = "block";
+          updatePollUI(data);
+        } else {
+          container.style.display = "none";
+        }
       });
     }
+
+    function updatePollUI(data) {
+      const votes = data.pollVotes || {};
+      const homeName = data.team_home || "Local";
+      const awayName = data.team_away || "Visitante";
+
+      // Update names and logos in voting view
+      document.getElementById("pollNameHome").textContent = homeName;
+      document.getElementById("pollNameAway").textContent = awayName;
+      document.getElementById("resNameHome").textContent = homeName.toUpperCase();
+      document.getElementById("resNameAway").textContent = awayName.toUpperCase();
+
+      const homeData = teamData[homeName] || {};
+      const awayData = teamData[awayName] || {};
+      document.getElementById("pollLogoHome").innerHTML = `<img src="${getLogoPath(homeData.logoId)}" onerror="this.style.display='none'"/>`;
+      document.getElementById("pollLogoAway").innerHTML = `<img src="${getLogoPath(awayData.logoId)}" onerror="this.style.display='none'"/>`;
+
+      // Check if user has already voted
+      const pollId = data.pollStartTime || "default"; 
+      const voted = localStorage.getItem("voted_" + pollId);
+
+      const options = document.getElementById("voteOptions");
+      const results = document.getElementById("pollResults");
+      const thanks = document.getElementById("thanksMsg");
+
+      if (voted) {
+        options.style.display = "none";
+        results.style.display = "flex";
+        thanks.style.display = "block";
+
+        // Calculate results
+        let homeCount = 0;
+        let awayCount = 0;
+        for (const k in votes) {
+          if (votes[k].team === "home") homeCount++;
+          else if (votes[k].team === "away") awayCount++;
+        }
+        const total = homeCount + awayCount;
+        const pctHome = total === 0 ? 50 : Math.round((homeCount / total) * 100);
+        const pctAway = total === 0 ? 50 : 100 - pctHome;
+
+        document.getElementById("barHome").style.width = pctHome + "%";
+        document.getElementById("barAway").style.width = pctAway + "%";
+        document.getElementById("resPctHome").textContent = pctHome + "%";
+        document.getElementById("resPctAway").textContent = pctAway + "%";
+      } else {
+        options.style.display = "flex";
+        results.style.display = "none";
+        thanks.style.display = "none";
+      }
+    }
+
+    window.submitVote = function (team) {
+      refGame.once("value").then(snap => {
+        const data = snap.val() || {};
+        const pollId = data.pollStartTime || "default";
+
+        if (localStorage.getItem("voted_" + pollId)) return;
+
+        // Record vote anonymously
+        const newVoteRef = refGame.child("pollVotes").push();
+        newVoteRef.set({
+          team: team,
+          timestamp: Date.now()
+        }).then(() => {
+          localStorage.setItem("voted_" + pollId, "true");
+          updatePollUI(data); // Immediate local update if possible or wait for sync
+        });
+      });
+    };
 
     function stopLive() {
       if (!liveListenerOn) return;

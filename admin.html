@@ -253,7 +253,8 @@
           <button onclick="addTeam()">Guardar equipo</button>
         </div>
         <div class="hint">Los equipos quedan guardados en <b>teams/</b>. Para agregar logos, edita
-          <b>logos/manifest.json</b> y sube las imágenes a la carpeta <b>logos/</b>.</div>
+          <b>logos/manifest.json</b> y sube las imágenes a la carpeta <b>logos/</b>.
+        </div>
       </div>
     </details>
 
@@ -425,19 +426,53 @@
       </div>
     </details>
 
-    <details>
+    <details open>
       <summary>
-        <span>Encuesta</span>
-        <span class="sumRight">Activar / desactivar</span>
+        <span>📊 Encuesta Interactiva</span>
+        <span class="sumRight">Control de votación</span>
       </summary>
       <div class="content">
         <div class="btnRow">
-          <button onclick="setPollEnabled(true)">Activar encuesta</button>
-          <button class="mutedBtn" onclick="setPollEnabled(false)">Desactivar encuesta</button>
-          <button class="mutedBtn" onclick="resetPollVotes()">Reiniciar votos</button>
+          <button class="btnSmall" onclick="setPollEnabled(true)" id="btnEnablePoll">📢 Mostrar en Marcador</button>
+          <button class="mutedBtn btnSmall" onclick="setPollEnabled(false)" id="btnDisablePoll">🚫 Ocultar</button>
+          <button class="mutedBtn btnSmall" onclick="resetPollVotes()" style="color: var(--danger)">🗑️ Reiniciar
+            Votos</button>
         </div>
+
+        <div id="pollStatusContainer"
+          style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+          <h4 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: var(--accent);">Resultados
+            en Vivo</h4>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px;">
+            <span id="adminHomeTeamName">Local</span>
+            <span id="adminAwayTeamName">Visitante</span>
+          </div>
+
+          <!-- Progress Bar Style -->
+          <div
+            style="height: 12px; background: #333; border-radius: 6px; overflow: hidden; display: flex; border: 1px solid #444;">
+            <div id="adminBarHome"
+              style="width: 50%; background: var(--blue); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 0 10px rgba(255,255,255,0.2);">
+            </div>
+            <div id="adminBarAway"
+              style="width: 50%; background: var(--danger); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 0 10px rgba(255,255,255,0.2);">
+            </div>
+          </div>
+
+          <div
+            style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 16px; font-weight: bold;">
+            <span id="adminPctHome">50%</span>
+            <span id="adminPctAway">50%</span>
+          </div>
+
+          <div id="totalVotesHint" style="text-align: center; margin-top: 10px; font-size: 12px; color: var(--muted);">
+            Total de votos: <span id="adminTotalVotes">0</span>
+          </div>
+        </div>
+
         <div class="hint">
-          En el scoreboard se muestra como barra de % por equipo (sin empate).
+          El público podrá votar directamente desde el Scoreboard presionando el logo de su equipo.
         </div>
       </div>
     </details>
@@ -853,7 +888,11 @@
 
     // ====== Encuesta enable/disable + reset ======
     window.setPollEnabled = function (enabled) {
-      refGame.update({ pollEnabled: !!enabled }).then(() => {
+      const updates = { pollEnabled: !!enabled };
+      if (enabled) {
+        updates.pollStartTime = Date.now(); // Unique key for this voting session
+      }
+      refGame.update(updates).then(() => {
         alert(enabled ? "Encuesta activada ✅" : "Encuesta desactivada ✅");
       });
     };
@@ -862,6 +901,41 @@
       if (!confirm("¿Reiniciar votos de la encuesta?")) return;
       refGame.child("pollVotes").remove().then(() => alert("Votos reiniciados ✅"));
     };
+
+    // --- Poll Listener for Admin ---
+    refGame.on("value", snap => {
+      const data = snap.val() || {};
+      const votes = data.pollVotes || {};
+      const homeName = data.team_home || "Local";
+      const awayName = data.team_away || "Visitante";
+
+      // Update names in results display
+      if ($("adminHomeTeamName")) $("adminHomeTeamName").textContent = homeName;
+      if ($("adminAwayTeamName")) $("adminAwayTeamName").textContent = awayName;
+
+      // Count votes
+      let homeVotes = 0;
+      let awayVotes = 0;
+      for (const k in votes) {
+        if (votes[k].team === "home") homeVotes++;
+        else if (votes[k].team === "away") awayVotes++;
+      }
+
+      const total = homeVotes + awayVotes;
+      const pctHome = total === 0 ? 50 : Math.round((homeVotes / total) * 100);
+      const pctAway = total === 0 ? 50 : 100 - pctHome;
+
+      if ($("adminBarHome")) $("adminBarHome").style.width = pctHome + "%";
+      if ($("adminBarAway")) $("adminBarAway").style.width = pctAway + "%";
+      if ($("adminPctHome")) $("adminPctHome").textContent = pctHome + "%";
+      if ($("adminPctAway")) $("adminPctAway").textContent = pctAway + "%";
+      if ($("adminTotalVotes")) $("adminTotalVotes").textContent = total;
+
+      // Highlight active buttons
+      const enabled = !!data.pollEnabled;
+      if ($("btnEnablePoll")) $("btnEnablePoll").style.opacity = enabled ? "1" : "0.5";
+      if ($("btnDisablePoll")) $("btnDisablePoll").style.opacity = !enabled ? "1" : "0.5";
+    });
 
     // ====== Reset / Finish ======
     window.resetGame = function () {
@@ -877,6 +951,7 @@
         possession: null,
         timeline: [],
         pollEnabled: false,
+        pollStartTime: null,
         pollVotes: {},
         players: {}
       }).then(() => alert("Marcador reseteado ✅"));

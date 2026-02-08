@@ -4,6 +4,12 @@
       "id": "placeholder",
       "name": "Sin Logo",
       "file": "placeholder.png"
+    },
+     {
+      "id": "Cyclones",
+      "name": "Cyclones",
+      "file": "Cyclones.png"
     }
   ]
 }
+

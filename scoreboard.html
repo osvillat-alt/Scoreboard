@@ -794,7 +794,11 @@
       const nameEl = document.getElementById(isHome ? "homeName" : "awayName");
       const scoreEl = document.getElementById(isHome ? "homeScore" : "awayScore");
       const logoEl = document.getElementById(isHome ? "homeLogo" : "awayLogo");
-      const initialsEl = document.getElementById(isHome ? "homeInitials" : "awayInitials");
+
+      if (!panel || !nameEl || !scoreEl || !logoEl) {
+        console.warn('paintTeamPanel: elementos no encontrados');
+        return;
+      }
 
       const displayName = teamName === "—" || !teamName ? (isHome ? "Local" : "Visitante") : teamName;
       nameEl.textContent = displayName;
@@ -804,13 +808,13 @@
       const color = data.color || (isHome ? "#c0392b" : "#2980b9");
       panel.style.setProperty(isHome ? '--home-color' : '--away-color', color);
 
-      // Logo
+      // Logo - always rebuild innerHTML to avoid stale references
       const logoPath = getLogoPath(data.logoId);
+      const initials = getInitials(displayName);
       if (logoPath) {
-        logoEl.innerHTML = `<img src="${logoPath}" alt="${displayName}" onerror="this.parentElement.innerHTML='<span class=\\'initials\\'>${getInitials(displayName)}</span>'" />`;
+        logoEl.innerHTML = `<img src="${logoPath}" alt="${displayName}" onerror="this.parentElement.innerHTML='<span class=\\'initials\\'>${initials}</span>'" />`;
       } else {
-        initialsEl.textContent = getInitials(displayName);
-        logoEl.innerHTML = `<span class="initials">${getInitials(displayName)}</span>`;
+        logoEl.innerHTML = `<span class="initials">${initials}</span>`;
       }
 
       // Posesión
@@ -1005,8 +1009,8 @@
         document.getElementById("history_hint").textContent = "Viendo partido guardado (solo lectura).";
         showTab("score");
       }).catch(err => {
-        console.error(err);
-        alert("Error al cargar historial.");
+        console.error("Error al cargar historial:", err);
+        alert("Error al cargar historial: " + (err.message || err));
       });
     }
 

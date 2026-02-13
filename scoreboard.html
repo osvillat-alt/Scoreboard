@@ -1,373 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marcador en Vivo</title>
-
-  <!-- Google Fonts - Orbitron for sports look -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@400;700&display=swap"
-    rel="stylesheet">
-
-  <!-- Firebase compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
-  <script src="firebase.js"></script>
-
-  <style>
-    :root {
-      --bg: #0b0c15;
-      /* Deep broadcast blue-black */
-      --panel: linear-gradient(180deg, #1e2330 0%, #0f1219 100%);
-      --chrome-border: linear-gradient(180deg, #ecf0f1 0%, #bdc3c7 20%, #7f8c8d 50%, #bdc3c7 80%, #ecf0f1 100%);
-      --chrome-inner: linear-gradient(90deg, #34495e 0%, #ecf0f1 50%, #34495e 100%);
-      --glass: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 50%, transparent 51%, rgba(0, 0, 0, 0.2) 100%);
-      --gold: #f39c12;
-      --gold-metallic: linear-gradient(180deg, #f39c12 0%, #f1c40f 50%, #d35400 100%);
-      --blue-glow: 0 0 20px rgba(41, 128, 185, 0.3);
-      --red-glow: 0 0 20px rgba(192, 57, 43, 0.3);
-      --mesh-bg:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      background-image:
-        radial-gradient(circle at 50% 0%, #1a253a 0%, #050505 80%);
-      color: white;
-      font-family: 'Orbitron', sans-serif;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    /* Tabs - Styled exactly like the top of the reference image */
-    .tabs {
-      display: flex;
-      gap: 0;
-      /* No gap for connected look */
-      margin-bottom: 25px;
-      justify-content: center;
-      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
-    }
-
-    .tab {
-      background: linear-gradient(180deg, #222 0%, #111 100%);
-      color: #777;
-      border: 1px solid #333;
-      padding: 12px 30px;
-      cursor: pointer;
-      font-family: 'Roboto', sans-serif;
-      text-transform: uppercase;
-      font-weight: 900;
-      font-style: italic;
-      letter-spacing: 1px;
-      transform: skew(-20deg);
-      transition: all 0.2s;
-      min-width: 140px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .tab span {
-      display: block;
-      transform: skew(20deg);
-    }
-
-    .tab:hover {
-      background: #2a2a2a;
-      color: #aaa;
-    }
-
-    .tab.active {
-      background: linear-gradient(180deg, #2c3e50 0%, #000 100%);
-      color: var(--gold);
-      border: 1px solid var(--gold);
-      box-shadow: inset 0 0 20px rgba(243, 156, 18, 0.1);
-      z-index: 2;
-    }
-
-    /* Meta Header */
-    .meta-header {
-      background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.8) 20%, rgba(0, 0, 0, 0.8) 80%, transparent 100%);
-      text-align: center;
-      padding: 8px;
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #aaa;
-      font-size: 14px;
-      font-family: 'Roboto', sans-serif;
-      text-shadow: 0 2px 4px black;
-    }
-
-    /* === MAIN SCOREBOARD CONTAINER === */
-    .scoreboard {
-      position: relative;
-      background: #0b0c15;
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.9),
-        0 0 0 1px #1a1a1a;
-      /* Subtle mesh pattern */
-      background-image:
-        repeating-linear-gradient(45deg,
-          rgba(255, 255, 255, 0.03) 0,
-          rgba(255, 255, 255, 0.03) 1px,
-          transparent 0,
-          transparent 5px);
-    }
-
-    /* Metallic Frame */
-    .scoreboard::after {
-      content: '';
-      position: absolute;
-      top: -5px;
-      left: -5px;
-      right: -5px;
-      bottom: -5px;
-      border-radius: 12px;
-      background: var(--chrome-border);
-      z-index: -2;
-      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
-    }
-
-    /* Inner Scoreboard structure */
-    .scoreboard-inner {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 2px;
-      /* Slight gap for separator effect */
-      background: #000;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 2px solid #333;
-    }
-
-    /* TEAM PANELS */
-    .team-panel {
-      position: relative;
-      height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 25px;
-      overflow: hidden;
-      /* Clean background by default */
-      background: linear-gradient(180deg, #151515 0%, #080808 100%);
-    }
-
-    /* Team Color Gradients - Cleaner, brighter */
-    .team-panel::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      /* Dynamic gradient based on team color */
-      background: linear-gradient(90deg, var(--team-color, #222) 0%, transparent 80%);
-      opacity: 0.8;
-      z-index: 0;
-    }
-
-    .team-panel.away::before {
-      background: linear-gradient(-90deg, var(--team-color, #222) 0%, transparent 80%);
-    }
-
-    /* Metallic sheen overlay */
-    .team-panel::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 50%;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    /* LOGOS - UPDATED TO FILL */
-    .team-logo {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #444, #111);
-      border: 3px solid rgba(255, 255, 255, 0.5);
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-      z-index: 2;
-      flex-shrink: 0;
-    }
-
-    .team-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      /* Fill the circle */
-      display: block;
-    }
-
-    /* TEXT STYLES */
-    .team-info {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      z-index: 2;
-      flex: 1;
-      padding: 0 20px;
-    }
-
-    .team-panel.home .team-info {
-      text-align: left;
-    }
-
-    .team-panel.away .team-info {
-      text-align: right;
-    }
-
-    .team-name {
-      font-size: 22px;
-      font-weight: 700;
-      text-transform: uppercase;
-      font-family: 'Roboto', sans-serif;
-      /* Cleaner font for names */
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
-      margin-bottom: 2px;
-      color: #fff;
-      letter-spacing: 0.5px;
-    }
-
-    .team-score {
-      font-size: 70px;
-      font-weight: 900;
-      line-height: 0.9;
-      font-family: 'Orbitron', monospace;
-      color: #fff;
-      text-shadow:
-        0 2px 0 #000,
-        0 0 10px rgba(255, 255, 255, 0.3);
-      position: relative;
-      z-index: 2;
-    }
-
-    /* VS BADGE CENTRAL - Dark and sleek */
-    .center-block {
-      width: 80px;
-      background: linear-gradient(180deg, #222 0%, #111 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3;
-      border-left: 1px solid #333;
-      border-right: 1px solid #333;
-      position: relative;
-    }
-
-    .vs-text {
-      font-size: 28px;
-      font-weight: 900;
-      font-style: italic;
-      color: #777;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-    }
-
-    /* POSSESSION ARROW - METALLIC GOLD & FLASHING */
-    .possession-arrow {
-      font-size: 13px;
-      color: #000;
-      background: var(--gold-metallic);
-      padding: 4px 12px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      font-weight: 900;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 1px;
-      display: none;
-      /* Hidden by default */
-      margin-top: 8px;
-      width: fit-content;
-      transform: skew(-10deg);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      box-shadow:
-        0 0 15px rgba(243, 156, 18, 0.6),
-        inset 0 0 5px rgba(255, 255, 255, 0.5);
-      animation: flashPossession 2s infinite;
-    }
-
-    .team-panel.possession .possession-arrow {
-      display: inline-block;
-    }
-
-    @keyframes flashPossession {
-
-      0%,
-      100% {
-        opacity: 1;
-        box-shadow: 0 0 20px rgba(243, 156, 18, 0.8);
-      }
-
-      50% {
-        opacity: 0.7;
-        box-shadow: 0 0 5px rgba(243, 156, 18, 0.3);
-      }
-    }
-
-    .team-panel.away .possession-arrow {
-      margin-left: auto;
-    }
-
-
-    /* BOTTOM BAR (Quarter & Live) */
-    .bottom-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #151515;
-      border-top: 3px solid #333;
-      padding: 12px 20px;
-      margin-top: 0;
-      /* Connected to scoreboard */
-      border-radius: 0 0 6px 6px;
-      background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-      background-size: 100% 3px;
-    }
-
-    .quarter-box {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .q-label {
-      color: #aaa;
-      font-weight: 700;
-      font-size: 16px;
-      font-family: 'Roboto', sans-serif;
-    }
-
-    .quarter-text {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--gold);
+@@ -371,50 +371,57 @@
       min-width: 40px;
       text-align: center;
       text-shadow: 0 0 10px rgba(243, 156, 18, 0.4);
@@ -391,6 +22,13 @@
       background: var(--gold);
       box-shadow: 0 0 8px var(--gold);
       border-color: #fff;
+    }
+
+    .quarter-dot.completed {
+      background: #555;
+      border-color: #666;
+      box-shadow: none;
+      opacity: 0.8;
     }
 
     .status-badge {
@@ -418,118 +56,7 @@
         box-shadow: 0 0 35px rgba(255, 0, 0, 1);
         opacity: 1;
       }
-    }
-
-    .status-badge.final {
-      background: #333;
-      color: #aaa;
-      box-shadow: none;
-      animation: none;
-    }
-
-    /* TIMELINE & STATS Styles */
-    .content-box {
-      background: rgba(15, 15, 20, 0.95);
-      border: 1px solid #333;
-      border-top: 4px solid var(--gold);
-      padding: 20px;
-      margin-top: 25px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-
-    .timeline li {
-      border-left: 3px solid var(--gold);
-      margin-bottom: 8px;
-      padding-left: 12px;
-      font-family: 'Roboto', sans-serif;
-      font-size: 14px;
-      color: #ddd;
-    }
-
-    /* POLL STYLES */
-    #pollContainer {
-      display: none;
-      /* Hidden by default */
-      margin-top: 30px;
-    }
-
-    .poll-card {
-      background: linear-gradient(180deg, #1e2330 0%, #0a0a10 100%);
-      border: 1px solid #333;
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
-    }
-
-    .poll-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--chrome-border);
-    }
-
-    .poll-header {
-      padding: 15px;
-      text-align: center;
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .poll-header h3 {
-      margin: 0;
-      font-size: 18px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--gold);
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    .poll-body {
-      padding: 25px;
-      position: relative;
-    }
-
-    /* Voting buttons */
-    .vote-options {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      padding: 10px 0;
-    }
-
-    .vote-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: transform 0.2s, filter 0.2s;
-      position: relative;
-    }
-
-    .vote-btn:hover {
-      transform: scale(1.1);
-      filter: brightness(1.2);
-    }
-
-    .vote-btn .team-logo {
-      width: 110px;
-      height: 110px;
-      border-color: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-    }
-
-    .vote-btn span {
-      margin-top: 15px;
-      font-weight: 900;
-      font-size: 14px;
-      text-transform: uppercase;
-      color: #fff;
+@@ -533,51 +540,51 @@
       text-shadow: 0 2px 4px black;
     }
 
@@ -556,6 +83,7 @@
       width: 50%;
       /* Default */
       transition: width 1s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+      transition: width 0.8s ease;
       position: relative;
     }
 
@@ -581,27 +109,7 @@
 
     .bar-label {
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 2;
-      font-weight: 900;
-      font-size: 16px;
-      padding: 0 15px;
-      color: #fff;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      box-sizing: border-box;
-    }
-
-    .thanks-msg {
-      text-align: center;
-      margin-top: 20px;
-      font-style: italic;
-      color: var(--gold);
-      font-size: 14px;
-      text-transform: uppercase;
+@@ -605,52 +612,53 @@
       letter-spacing: 1px;
       display: none;
     }
@@ -629,6 +137,9 @@
       width: 60px;
       opacity: 0.3;
       filter: grayscale(100%);
+      pointer-events: none;
+      opacity: 0.18;
+      filter: drop-shadow(0 0 6px rgba(0, 0, 0, .7));
       z-index: 99;
     }
 
@@ -654,357 +165,7 @@
       .team-panel {
         height: 110px;
         padding: 0 20px;
-        flex-direction: row;
-        background: transparent;
-        /* Let the color from ::before show through */
-        border-bottom: 2px solid #222;
-      }
-
-      .team-panel.away {
-        flex-direction: row-reverse;
-        text-align: right;
-        border-bottom: none;
-      }
-
-      .team-logo {
-        width: 75px;
-        height: 75px;
-        border-width: 2px;
-      }
-
-      .team-score {
-        font-size: 60px;
-      }
-
-      .team-name {
-        font-size: 18px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 140px;
-      }
-
-      .possession-arrow {
-        font-size: 11px;
-        padding: 2px 8px;
-      }
-
-      .bottom-bar {
-        padding: 10px 15px;
-      }
-
-      .q-label {
-        font-size: 13px;
-      }
-
-      .quarter-text {
-        font-size: 20px;
-      }
-
-      .status-badge {
-        font-size: 12px;
-        padding: 5px 15px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-
-  <img src="bb6b5054-8bfb-4159-b6c0-b19a23ba52b3.png" alt="OVT" class="watermark" />
-
-  <div class="wrap">
-
-    <!-- Tabs -->
-    <div class="tabs">
-      <button id="tabScore" class="tab active" onclick="showTab('score')">Marcador</button>
-      <button id="tabStats" class="tab" onclick="showTab('stats')">Estadísticas</button>
-      <button id="tabHistory" class="tab" onclick="showTab('history')">Historial</button>
-    </div>
-
-    <!-- VIEW: SCORE -->
-    <div id="viewScore">
-
-      <!-- Meta Header -->
-      <div class="meta-header">
-        <div class="meta-location" id="metaLocation">—</div>
-        <div class="meta-date" id="metaDate">—</div>
-      </div>
-
-      <!-- Main Scoreboard -->
-      <div class="scoreboard">
-        <div class="scoreboard-inner">
-
-          <!-- Home Team -->
-          <div id="homePanel" class="team-panel home">
-            <div class="team-logo" id="homeLogo">
-              <span class="initials" id="homeInitials">L</span>
-            </div>
-            <div class="team-info">
-              <div class="team-name" id="homeName">Local</div>
-              <div class="team-score" id="homeScore">0</div>
-              <div class="possession-arrow">◀ POSESIÓN</div>
-            </div>
-          </div>
-
-          <!-- Center VS -->
-          <div class="center-block">
-            <div class="vs-text">VS</div>
-          </div>
-
-          <!-- Away Team -->
-          <div id="awayPanel" class="team-panel away">
-            <div class="team-logo" id="awayLogo">
-              <span class="initials" id="awayInitials">V</span>
-            </div>
-            <div class="team-info">
-              <div class="team-name" id="awayName">Visitante</div>
-              <div class="team-score" id="awayScore">0</div>
-              <div class="possession-arrow">POSESIÓN ▶</div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Info Bar (now inside scoreboard frame) -->
-        <div class="bottom-bar">
-          <div class="quarter-box">
-            <span class="q-label">CUARTO:</span>
-            <span class="quarter-text" id="quarterText">1</span>
-            <div class="quarter-badges" id="quarterBadges">
-              <div class="quarter-dot active"></div>
-              <div class="quarter-dot"></div>
-              <div class="quarter-dot"></div>
-              <div class="quarter-dot"></div>
-            </div>
-          </div>
-          <div id="statusBadge" class="status-badge">EN VIVO</div>
-        </div>
-      </div>
-
-      <!-- Timeline -->
-      <div class="content-box">
-        <div class="timeline-title" style="color:var(--gold); font-weight:bold; margin-bottom:15px; font-size:18px;">📋
-          CRÓNICA DEL PARTIDO</div>
-        <ul class="timeline" id="timelineList"></ul>
-      </div>
-
-      <!-- POLL UI -->
-      <div id="pollContainer" style="display:none; margin-top:25px;">
-        <div class="poll-card">
-          <div class="poll-header">
-            <h3>¿Quién ganará hoy?</h3>
-          </div>
-          <div class="poll-body">
-            <div class="vote-options" id="voteOptions">
-              <button class="vote-btn" onclick="submitVote('home')">
-                <div id="pollLogoHome" class="team-logo"></div>
-                <span id="pollNameHome">Local</span>
-              </button>
-              <button class="vote-btn" onclick="submitVote('away')">
-                <div id="pollLogoAway" class="team-logo"></div>
-                <span id="pollNameAway">Visitante</span>
-              </button>
-            </div>
-
-            <div class="poll-results" id="pollResults">
-              <div class="poll-bar-container">
-                <div class="poll-bar home" id="barHome"></div>
-                <div class="bar-label">
-                  <span id="resNameHome">LOCAL</span>
-                  <span id="resPctHome">50%</span>
-                </div>
-              </div>
-
-              <div class="poll-bar-container" style="margin-top: 15px;">
-                <div class="poll-bar away" id="barAway"></div>
-                <div class="bar-label">
-                  <span id="resNameAway">VISITANTE</span>
-                  <span id="resPctAway">50%</span>
-                </div>
-              </div>
-
-              <div class="thanks-msg" id="thanksMsg">¡Voto registrado! Gracias por participar.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: STATS -->
-    <div id="viewStats" style="display:none;">
-      <div id="stats_container" class="content-box-qb" style="display: none;">
-        <div id="qbTitle" class="qb-title">Estadísticas del QB</div>
-        <div id="qbName" class="qb-name">Nombre: —</div>
-        <div id="qbPct" class="qb-stat">CMP/ATT: 0/0 (0%)</div>
-
-        <div class="qb-grid">
-          <div class="qb-stat"><span class="label">Yds pase</span><span id="qbPassYds">0</span></div>
-          <div class="qb-stat"><span class="label">TD pase</span><span id="qbPassTd">0</span></div>
-          <div class="qb-stat"><span class="label">INTs</span><span id="qbInts">0</span></div>
-          <div class="qb-stat"><span class="label">Yds tierra</span><span id="qbRushYds">0</span></div>
-          <div class="qb-stat"><span class="label">TD tierra</span><span id="qbRushTd">0</span></div>
-        </div>
-      </div>
-    </div>
-
-
-
-
-
-    <!-- VIEW: HISTORY -->
-    <div id="viewHistory" style="display:none;">
-      <div class="content-box">
-        <h2 style="color:var(--gold); margin-bottom:10px;">Historial de Partidos</h2>
-        <div class="muted" style="font-size:13px; color:#777; margin-bottom:15px;">
-          Selecciona un partido guardado para verlo aquí (solo lectura). No afecta el partido en vivo.
-        </div>
-
-        <div class="history-row">
-          <select id="history_select" style="min-width:260px; max-width:520px;"></select>
-          <button class="tab"
-            style="transform:none; padding:8px 16px; min-width:auto; background:var(--gold); color:black; border:none;"
-            onclick="loadHistoryToViewer()">Ver partido</button>
-          <button class="tab" style="transform:none; padding:8px 16px; min-width:auto;" onclick="backToLive()">Volver
-            a
-            en vivo</button>
-        </div>
-
-        <div id="history_hint" class="muted" style="margin-top:14px;font-size:13px; color:#777;">
-          —
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    // ===== Firebase refs =====
-    const refGame = db.ref("game");
-    const refTeams = db.ref("teams");
-    const refHistory = db.ref("history");
-
-    // Cache de datos de equipo (color + logo)
-    const teamData = {};
-    let logoManifest = {};
-
-    // Load logo manifest
-    fetch('logos/manifest.json')
-      .then(res => res.json())
-      .then(data => {
-        logoManifest = {};
-        (data.logos || []).forEach(l => {
-          logoManifest[l.id] = l;
-        });
-      })
-      .catch(err => console.warn('No se pudo cargar manifest de logos:', err));
-
-    refTeams.on("value", snap => {
-      const teams = snap.val() || {};
-      for (const name in teams) {
-        teamData[name] = {
-          color: teams[name]?.color || "#444",
-          logoId: teams[name]?.logoId || null
-        };
-      }
-    });
-
-    // ===== Tabs =====
-    function showTab(tab) {
-      document.getElementById("viewScore").style.display = (tab === "score") ? "block" : "none";
-      document.getElementById("viewStats").style.display = (tab === "stats") ? "block" : "none";
-      document.getElementById("viewHistory").style.display = (tab === "history") ? "block" : "none";
-
-      document.getElementById("tabScore").classList.toggle("active", tab === "score");
-      document.getElementById("tabStats").classList.toggle("active", tab === "stats");
-      document.getElementById("tabHistory").classList.toggle("active", tab === "history");
-    }
-
-    // ===== Helper =====
-    function safeText(x) { return (x === null || x === undefined || x === "") ? "—" : String(x); }
-
-    function getInitials(name) {
-      if (!name || name === "—") return "?";
-      const words = name.trim().split(/\s+/);
-      if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-
-    function getLogoPath(logoId) {
-      if (!logoId || !logoManifest[logoId]) return null;
-      return 'logos/' + logoManifest[logoId].file;
-    }
-
-    function paintTeamPanel(side, teamName, score, possessionSide) {
-      const isHome = (side === "home");
-      const panel = document.getElementById(isHome ? "homePanel" : "awayPanel");
-      const nameEl = document.getElementById(isHome ? "homeName" : "awayName");
-      const scoreEl = document.getElementById(isHome ? "homeScore" : "awayScore");
-      const logoEl = document.getElementById(isHome ? "homeLogo" : "awayLogo");
-
-      if (!panel || !nameEl || !scoreEl || !logoEl) {
-        console.warn('paintTeamPanel: elementos no encontrados');
-        return;
-      }
-
-      const displayName = teamName === "—" || !teamName ? (isHome ? "Local" : "Visitante") : teamName;
-      nameEl.textContent = displayName;
-      scoreEl.textContent = (score ?? 0);
-
-      const data = teamData[teamName] || {};
-      const color = data.color || (isHome ? "#c0392b" : "#2980b9");
-      panel.style.setProperty('--team-color', color);
-
-      // Logo - always rebuild innerHTML to avoid stale references
-      const logoPath = getLogoPath(data.logoId);
-      const initials = getInitials(displayName);
-      if (logoPath) {
-        logoEl.innerHTML = `<img src="${logoPath}" alt="${displayName}" onerror="this.parentElement.innerHTML='<span class=\\'initials\\'>${initials}</span>'" />`;
-      } else {
-        logoEl.innerHTML = `<span class="initials">${initials}</span>`;
-      }
-
-      // Posesión
-      panel.classList.toggle("possession", possessionSide === side);
-    }
-
-    function renderMeta(data) {
-      const loc = safeText(data.location);
-      const date = safeText(data.date);
-      document.getElementById("metaLocation").textContent = loc;
-      document.getElementById("metaDate").textContent = date;
-    }
-
-    function renderQuarter(data) {
-      const finished = !!data.finished;
-      const quarterText = document.getElementById("quarterText");
-      const statusBadge = document.getElementById("statusBadge");
-      const quarterBadges = document.getElementById("quarterBadges");
-
-      if (finished) {
-        quarterText.textContent = "FINAL";
-        statusBadge.className = "status-badge final";
-        statusBadge.innerHTML = "FINALIZADO";
-      } else {
-        quarterText.textContent = safeText(data.quarter);
-        statusBadge.className = "status-badge";
-        statusBadge.innerHTML = "🔴 EN VIVO";
-      }
-
-      // Update quarter dots
-      const quarterOrder = ["1Q", "2Q", "3Q", "4Q"];
-      const currentQ = data.quarter || "1Q";
-      const currentIdx = quarterOrder.indexOf(currentQ);
-
-      const dots = quarterBadges.querySelectorAll('.quarter-dot');
-      dots.forEach((dot, i) => {
-        dot.classList.remove('active', 'completed');
-        if (i < currentIdx || finished) {
-          dot.classList.add('completed');
-        } else if (i === currentIdx && !finished) {
-          dot.classList.add('active');
-        }
-      });
+@@ -1008,135 +1016,140 @@
     }
 
     function renderTimeline(data) {
@@ -1030,9 +191,14 @@
     }
 
     function renderQB(qb) {
+      const container = document.getElementById("stats_container");
+      container.style.display = "block";
+
       const title = document.getElementById("qbTitle");
       const nameLine = document.getElementById("qbNameLine");
       const cmpLine = document.getElementById("qbCmpLine");
+      const nameLine = document.getElementById("qbName");
+      const cmpLine = document.getElementById("qbPct");
 
       if (!qb) {
         title.textContent = "Estadísticas del QB";
@@ -1043,6 +209,11 @@
         document.getElementById("qbInts").textContent = "Intercepciones: 0";
         document.getElementById("qbRushYds").textContent = "Yds tierra: 0";
         document.getElementById("qbRushTd").textContent = "TD tierra: 0";
+        document.getElementById("qbPassYds").textContent = "0";
+        document.getElementById("qbPassTd").textContent = "0";
+        document.getElementById("qbInts").textContent = "0";
+        document.getElementById("qbRushYds").textContent = "0";
+        document.getElementById("qbRushTd").textContent = "0";
         return;
       }
 
@@ -1063,6 +234,11 @@
       document.getElementById("qbInts").textContent = `Intercepciones: ${st.ints || 0}`;
       document.getElementById("qbRushYds").textContent = `Yds tierra: ${st.rush_yds || 0}`;
       document.getElementById("qbRushTd").textContent = `TD tierra: ${st.rush_td || 0}`;
+      document.getElementById("qbPassYds").textContent = (st.pass_yds || 0);
+      document.getElementById("qbPassTd").textContent = (st.pass_td || 0);
+      document.getElementById("qbInts").textContent = (st.ints || 0);
+      document.getElementById("qbRushYds").textContent = (st.rush_yds || 0);
+      document.getElementById("qbRushTd").textContent = (st.rush_td || 0);
     }
 
     // ===== Live / History switch =====
@@ -1115,6 +291,10 @@
       const awayData = teamData[awayName] || {};
       document.getElementById("pollLogoHome").innerHTML = `<img src="${getLogoPath(homeData.logoId)}" onerror="this.style.display='none'"/>`;
       document.getElementById("pollLogoAway").innerHTML = `<img src="${getLogoPath(awayData.logoId)}" onerror="this.style.display='none'"/>`;
+      const homeLogoPath = getLogoPath(homeData.logoId);
+      const awayLogoPath = getLogoPath(awayData.logoId);
+      document.getElementById("pollLogoHome").innerHTML = homeLogoPath ? `<img src="${homeLogoPath}" onerror="this.style.display='none'"/>` : "";
+      document.getElementById("pollLogoAway").innerHTML = awayLogoPath ? `<img src="${awayLogoPath}" onerror="this.style.display='none'"/>` : "";
 
       // Check if user has already voted
       const pollId = data.pollStartTime || "default"; // Use a unique session key if possible
@@ -1139,112 +319,3 @@
         const total = homeCount + awayCount;
         const pctHome = total === 0 ? 50 : Math.round((homeCount / total) * 100);
         const pctAway = total === 0 ? 50 : 100 - pctHome;
-
-        document.getElementById("barHome").style.width = pctHome + "%";
-        document.getElementById("barAway").style.width = pctAway + "%";
-        document.getElementById("resPctHome").textContent = pctHome + "%";
-        document.getElementById("resPctAway").textContent = pctAway + "%";
-      } else {
-        options.style.display = "flex";
-        results.style.display = "none";
-        thanks.style.display = "none";
-      }
-    }
-
-    window.submitVote = function (team) {
-      refGame.once("value").then(snap => {
-        const data = snap.val() || {};
-        const pollId = data.pollStartTime || "default";
-
-        if (localStorage.getItem("voted_" + pollId)) return;
-
-        // Record vote anonymously
-        const newVoteRef = refGame.child("pollVotes").push();
-        newVoteRef.set({
-          team: team,
-          timestamp: Date.now()
-        }).then(() => {
-          localStorage.setItem("voted_" + pollId, "true");
-          updatePollUI(data); // Immediate local update if possible or wait for sync
-        });
-      });
-    };
-
-    function stopLive() {
-      if (!liveListenerOn) return;
-      liveListenerOn = false;
-      refGame.off();
-    }
-
-    function backToLive() {
-      document.getElementById("history_hint").textContent = "Modo en vivo activo.";
-      stopLive();
-      startLive();
-      showTab("score");
-    }
-
-    // ===== History list =====
-    refHistory.on("value", snap => {
-      const sel = document.getElementById("history_select");
-      const hint = document.getElementById("history_hint");
-      const data = snap.val() || {};
-      const keys = Object.keys(data).sort((a, b) => Number(b) - Number(a));
-
-      sel.innerHTML = "";
-      if (!keys.length) {
-        sel.innerHTML = `<option value="">(No hay juegos guardados)</option>`;
-        hint.textContent = "No hay historial todavía.";
-        return;
-      }
-
-      keys.forEach(k => {
-        const g = data[k] || {};
-        const home = g.team_home || "Local";
-        const away = g.team_away || "Visitante";
-        const sh = (g.score_home ?? 0);
-        const sa = (g.score_away ?? 0);
-        const fecha = g.date ? ` • ${g.date}` : "";
-        sel.innerHTML += `<option value="${k}">${home} ${sh} - ${sa} ${away}${fecha}</option>`;
-      });
-
-      hint.textContent = 'Selecciona un juego y presiona "Ver partido".';
-    });
-
-    function loadHistoryToViewer() {
-      const key = document.getElementById("history_select").value;
-      if (!key) return alert("No hay juego seleccionado.");
-
-      stopLive();
-
-      refHistory.child(key).once("value").then(snap => {
-        const data = snap.val();
-        if (!data) return alert("No se encontró ese juego.");
-
-        renderMeta(data);
-
-        const homeName = data.team_home || "Local";
-        const awayName = data.team_away || "Visitante";
-        paintTeamPanel("home", homeName, data.score_home ?? 0, data.possession);
-        paintTeamPanel("away", awayName, data.score_away ?? 0, data.possession);
-
-        renderQuarter(data);
-        renderTimeline(data);
-
-        const qb = (data.players && data.players.qb) ? data.players.qb : null;
-        renderQB(qb);
-
-        document.getElementById("history_hint").textContent = "Viendo partido guardado (solo lectura).";
-        showTab("score");
-      }).catch(err => {
-        console.error("Error al cargar historial:", err);
-        alert("Error al cargar historial: " + (err.message || err));
-      });
-    }
-
-    // Start
-    startLive();
-  </script>
-
-</body>
-
-</html>

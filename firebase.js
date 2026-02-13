@@ -1,6 +1,6 @@
-// Configuración de tu app web en Firebase
-const firebaseConfig = {
-// Configuración base de Firebase (puede sobrescribirse desde window.FIREBASE_CONFIG)
+// =============================
+// Configuración base Firebase
+// =============================
 const defaultFirebaseConfig = {
   apiKey: "AIzaSyAa5K74St8vyoGt3bttWq0AUlDfdWaBOGs",
   authDomain: "scoreboard-62028.firebaseapp.com",
@@ -11,13 +11,17 @@ const defaultFirebaseConfig = {
   appId: "1:8415479304:web:0fe13fd4f35761383133bd"
 };
 
-// Inicializar Firebase (versión compat)
-firebase.initializeApp(firebaseConfig);
+// =============================
+// Permitir override dinámico
+// =============================
 const firebaseConfig = {
   ...defaultFirebaseConfig,
   ...(window.FIREBASE_CONFIG || {})
 };
 
+// =============================
+// Validación básica
+// =============================
 const requiredConfigKeys = [
   "apiKey",
   "authDomain",
@@ -28,24 +32,21 @@ const requiredConfigKeys = [
   "appId"
 ];
 
-const hasMissingConfig = requiredConfigKeys.some((key) => !firebaseConfig[key]);
-const hasPlaceholderApiKey =
-  typeof firebaseConfig.apiKey !== "string" ||
-  firebaseConfig.apiKey.includes("tu clave") ||
-  firebaseConfig.apiKey.includes("...");
+const hasMissingConfig = requiredConfigKeys.some(key => !firebaseConfig[key]);
 
-if (hasMissingConfig || hasPlaceholderApiKey) {
-  console.error(
-    "Firebase no está configurado correctamente. " +
-    "Define window.FIREBASE_CONFIG con tus credenciales reales antes de cargar firebase.js."
-  );
+if (hasMissingConfig) {
+  console.error("Firebase config incompleta.");
 }
 
-// Inicializar Firebase (versión compat) una sola vez
+// =============================
+// Inicializar Firebase UNA vez
+// =============================
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-// Inicializar Realtime Database
+// =============================
+// Inicializar Realtime DB
+// =============================
 const db = firebase.database();
 window.db = db;

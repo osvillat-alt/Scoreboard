@@ -252,141 +252,243 @@ CUARTO: <span id="quarterText">1Q</span>
 </div>
 
 <script>
+  // ===== Firebase refs =====
+  const refGame = db.ref("game");
+  const refTeams = db.ref("teams");
+  const refHistory = db.ref("history");
 
-const refGame=db.ref("game");
-const refTeams=db.ref("teams");
-const refHistory=db.ref("history");
+  // Cache de datos de equipo
+  const teamData = {};
+  let logoManifest = {};
 
-const teamData={};
+  // Load logo manifest
+  fetch('logos/manifest.json')
+    .then(res => res.json())
+    .then(data => {
+      (data.logos || []).forEach(l => {
+        logoManifest[l.id] = l;
+      });
+    })
+    .catch(() => console.warn('No se pudo cargar manifest de logos'));
 
-refTeams.on("value",snap=>{
-const t=snap.val()||{};
-for(const k in t){
-teamData[k]=t[k];
-}
-});
+  refTeams.on("value", snap => {
+    const teams = snap.val() || {};
+    for (const name in teams) {
+      teamData[name] = {
+        color: teams[name]?.color || "#444",
+        logoId: teams[name]?.logoId || null
+      };
+    }
+  });
 
-function showTab(t){
-viewScore.style.display=t==="score"?"block":"none";
-viewStats.style.display=t==="stats"?"block":"none";
-viewHistory.style.display=t==="history"?"block":"none";
+  // ===== Tabs =====
+  function showTab(tab) {
+    document.getElementById("viewScore").style.display = (tab === "score") ? "block" : "none";
+    document.getElementById("viewStats").style.display = (tab === "stats") ? "block" : "none";
+    document.getElementById("viewHistory").style.display = (tab === "history") ? "block" : "none";
 
-tabScore.classList.toggle("active",t==="score");
-tabStats.classList.toggle("active",t==="stats");
-tabHistory.classList.toggle("active",t==="history");
-}
+    document.getElementById("tabScore").classList.toggle("active", tab === "score");
+    document.getElementById("tabStats").classList.toggle("active", tab === "stats");
+    document.getElementById("tabHistory").classList.toggle("active", tab === "history");
+  }
 
-function getInitials(n){
-if(!n)return "?";
-return n.split(" ").map(w=>w[0]).join("").substring(0,2).toUpperCase();
-}
+  function safeText(x) {
+    return (x === null || x === undefined || x === "") ? "—" : String(x);
+  }
 
-function paint(side,name,score){
+  function getInitials(name) {
+    if (!name) return "?";
+    const words = name.trim().split(/\s+/);
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
 
-const isHome=side==="home";
-const panel=document.getElementById(isHome?"homePanel":"awayPanel");
-const logo=document.getElementById(isHome?"homeLogo":"awayLogo");
+  function getLogoPath(logoId) {
+    if (!logoId || !logoManifest[logoId]) return null;
+    return 'logos/' + logoManifest[logoId].file;
+  }
 
-panel.style.setProperty("--team-color",teamData[name]?.color||"#333");
+  function paintTeamPanel(side, teamName, score, possessionSide) {
+    const isHome = (side === "home");
+    const panel = document.getElementById(isHome ? "homePanel" : "awayPanel");
+    const nameEl = document.getElementById(isHome ? "homeName" : "awayName");
+    const scoreEl = document.getElementById(isHome ? "homeScore" : "awayScore");
+    const logoEl = document.getElementById(isHome ? "homeLogo" : "awayLogo");
 
-document.getElementById(isHome?"homeName":"awayName").textContent=name||"—";
-document.getElementById(isHome?"homeScore":"awayScore").textContent=score??0;
+    const displayName = teamName || (isHome ? "Local" : "Visitante");
+    nameEl.textContent = displayName;
+    scoreEl.textContent = score ?? 0;
 
-logo.innerHTML=`<span>${getInitials(name)}</span>`;
-}
+    const data = teamData[teamName] || {};
+    const color = data.color || (isHome ? "#c0392b" : "#2980b9");
+    panel.style.setProperty('--team-color', color);
 
-function renderQB(qb){
+    const logoPath = getLogoPath(data.logoId);
+    const initials = getInitials(displayName);
 
-const title=qbTitle;
-const name=qbName;
-const pct=qbPct;
+    logoEl.innerHTML = logoPath
+      ? `<img src="${logoPath}" alt="${displayName}" onerror="this.parentElement.innerHTML='<span class=\\'initials\\'>${initials}</span>'" />`
+      : `<span class="initials">${initials}</span>`;
 
-if(!qb){
-title.textContent="Estadísticas QB";
-name.textContent="Nombre: —";
-pct.textContent="CMP/ATT 0/0";
-return;
-}
+    panel.classList.toggle("possession", possessionSide === side);
+  }
 
-const st=qb.stats||{};
-const cmp=st.pass_cmp||0;
-const att=st.pass_att||0;
-const p=att?((cmp/att)*100).toFixed(1):0;
+  function renderMeta(data) {
+    document.getElementById("metaLocation").textContent = safeText(data.location);
+    document.getElementById("metaDate").textContent = safeText(data.date);
+  }
 
-title.textContent="QB "+qb.team;
-name.textContent="Nombre: "+qb.name;
-pct.textContent=`CMP/ATT ${cmp}/${att} (${p}%)`;
+  function renderQuarter(data) {
+    const finished = !!data.finished;
+    const quarterText = document.getElementById("quarterText");
+    const statusBadge = document.getElementById("statusBadge");
 
-qbPassYds.textContent=st.pass_yds||0;
-qbPassTd.textContent=st.pass_td||0;
-qbInts.textContent=st.ints||0;
-qbRushYds.textContent=st.rush_yds||0;
-qbRushTd.textContent=st.rush_td||0;
+    if (finished) {
+      quarterText.textContent = "FINAL";
+      statusBadge.className = "status-badge final";
+      statusBadge.innerHTML = "FINALIZADO";
+    } else {
+      quarterText.textContent = safeText(data.quarter || "1Q");
+      statusBadge.className = "status-badge";
+      statusBadge.innerHTML = "🔴 EN VIVO";
+    }
+  }
 
-}
+  function renderTimeline(data) {
+    const list = document.getElementById("timelineList");
+    list.innerHTML = "";
 
-function renderTimeline(data){
-timelineList.innerHTML="";
-const tl=data.timeline||[];
+    const tl = data.timeline || [];
+    if (!tl.length) {
+      list.innerHTML = `<li class="muted">Sin jugadas registradas todavía.</li>`;
+      return;
+    }
 
-[...tl].reverse().forEach(x=>{
-const li=document.createElement("li");
-li.textContent=x;
-timelineList.appendChild(li);
-});
-}
+    [...tl].reverse().forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
+    });
+  }
 
-refGame.on("value",snap=>{
+  // ===== QB =====
+  function calcCmpPct(cmp, att) {
+    if (!att) return "0%";
+    return ((cmp / att) * 100).toFixed(1) + "%";
+  }
 
-const d=snap.val()||{};
+  function renderQB(qb) {
+    const title = document.getElementById("qbTitle");
+    const nameLine = document.getElementById("qbName");
+    const cmpLine = document.getElementById("qbPct");
 
-metaLine.textContent=(d.location||"")+" "+(d.date||"");
+    if (!qb) {
+      title.textContent = "Estadísticas del QB";
+      nameLine.textContent = "Nombre: —";
+      cmpLine.textContent = "CMP/ATT: 0/0 (0%)";
+      document.getElementById("qbPassYds").textContent = 0;
+      document.getElementById("qbPassTd").textContent = 0;
+      document.getElementById("qbInts").textContent = 0;
+      document.getElementById("qbRushYds").textContent = 0;
+      document.getElementById("qbRushTd").textContent = 0;
+      return;
+    }
 
-paint("home",d.team_home,d.score_home);
-paint("away",d.team_away,d.score_away);
+    const st = qb.stats || {};
+    const cmp = st.pass_cmp || 0;
+    const att = st.pass_att || 0;
+    const pct = calcCmpPct(cmp, att);
 
-quarterText.textContent=d.finished?"FINAL":d.quarter||"1Q";
+    title.textContent = `Estadísticas del QB de ${qb.team || "—"}`;
+    nameLine.textContent = `Nombre: ${qb.name || "—"}`;
+    cmpLine.textContent = `CMP/ATT: ${cmp}/${att} (${pct})`;
 
-renderTimeline(d);
+    document.getElementById("qbPassYds").textContent = st.pass_yds || 0;
+    document.getElementById("qbPassTd").textContent = st.pass_td || 0;
+    document.getElementById("qbInts").textContent = st.ints || 0;
+    document.getElementById("qbRushYds").textContent = st.rush_yds || 0;
+    document.getElementById("qbRushTd").textContent = st.rush_td || 0;
+  }
 
-const qb=d.players?.qb||null;
-renderQB(qb);
+  // ===== LIVE =====
+  let liveListenerOn = false;
 
-});
+  function startLive() {
+    if (liveListenerOn) return;
+    liveListenerOn = true;
 
-refHistory.on("value",snap=>{
-const data=snap.val()||{};
-history_select.innerHTML="";
+    refGame.on("value", snap => {
+      const data = snap.val() || {};
 
-Object.keys(data).sort((a,b)=>b-a).forEach(k=>{
-const g=data[k];
-history_select.innerHTML+=`<option value="${k}">
-${g.team_home} ${g.score_home}-${g.score_away} ${g.team_away}
-</option>`;
-});
-});
+      renderMeta(data);
 
-function loadHistoryToViewer(){
+      paintTeamPanel("home", data.team_home, data.score_home, data.possession);
+      paintTeamPanel("away", data.team_away, data.score_away, data.possession);
 
-const k=history_select.value;
-if(!k)return;
+      renderQuarter(data);
+      renderTimeline(data);
 
-refHistory.child(k).once("value").then(s=>{
-const d=s.val();
+      const qb = data.players?.qb || null;
+      renderQB(qb);
+    });
+  }
 
-paint("home",d.team_home,d.score_home);
-paint("away",d.team_away,d.score_away);
+  function stopLive() {
+    if (!liveListenerOn) return;
+    liveListenerOn = false;
+    refGame.off();
+  }
 
-renderTimeline(d);
+  // ===== HISTORY =====
+  refHistory.on("value", snap => {
+    const sel = document.getElementById("history_select");
+    const data = snap.val() || {};
+    const keys = Object.keys(data).sort((a, b) => Number(b) - Number(a));
 
-});
-}
+    sel.innerHTML = "";
 
-function backToLive(){
-showTab("score");
-}
+    if (!keys.length) {
+      sel.innerHTML = `<option value="">(No hay juegos guardados)</option>`;
+      return;
+    }
 
+    keys.forEach(k => {
+      const g = data[k];
+      sel.innerHTML += `<option value="${k}">
+        ${g.team_home} ${g.score_home} - ${g.score_away} ${g.team_away}
+      </option>`;
+    });
+  });
+
+  function loadHistoryToViewer() {
+    const key = document.getElementById("history_select").value;
+    if (!key) return;
+
+    stopLive();
+
+    refHistory.child(key).once("value").then(snap => {
+      const data = snap.val();
+      if (!data) return;
+
+      renderMeta(data);
+      paintTeamPanel("home", data.team_home, data.score_home, data.possession);
+      paintTeamPanel("away", data.team_away, data.score_away, data.possession);
+      renderQuarter(data);
+      renderTimeline(data);
+      renderQB(data.players?.qb || null);
+    });
+  }
+
+  function backToLive() {
+    stopLive();
+    startLive();
+    showTab("score");
+  }
+
+  // Start
+  startLive();
 </script>
+/script>
 
 </body>
 </html>
